@@ -1,6 +1,14 @@
 # Manual QA checklist
 
-Run `npm run dev` and verify at 375px, 768px and 1440px.
+Run `npm run dev:full` (Express + Vite) and verify at 375px, 768px and 1440px.
+`npm run dev` also works on its own — the client falls back to local demo data when the API is offline.
+
+## API
+- [ ] `GET http://localhost:5000/api/health` → `status: ok`
+- [ ] `GET /api/listings` → 19 labelled demo records, `isDemo: true`, `contact: null`
+- [ ] `GET /api/listings/demo-nirma-budget-pg` → one demo record; unknown id → 404
+- [ ] `GET /api/listings?category=pg&city=Ahmedabad` → filtered demo records
+- [ ] Browser network tab shows the client requesting `/api/listings` through the Vite proxy
 
 ## Routes
 - [ ] `/`, `/explore`, `/search?q=Nirma%20University&radius=5`, `/map`

@@ -1,13 +1,15 @@
-# Nivasa frontend conventions (read before writing pages)
+# Nivasa conventions (read before writing code)
 
 ## Absolute rules
-- TypeScript strict mode, React 19, Tailwind CSS 3, React Router 7, Zustand, TanStack Query.
-- Import with the `@/` alias (e.g. `@/components/ui/Button`).
+- JavaScript + JSX only (ESM). React 19, Tailwind CSS 3, React Router 7, Zustand, TanStack Query.
+- Client code lives in `src/`; the Express API lives in `server/`. Both use `.js`/`.jsx`.
+- Import from `src/` with the `@/` alias (e.g. `@/components/ui/Button`). Inside `src/features/listings/`, relative imports include the `.js` extension so the API can reuse the demo module in Node.
+- In `server/`, relative imports must include the `.js` extension (native Node ESM).
 - **Never invent a real property, phone number, owner name, market price or review.** All listings come from
   `DEMO_LISTINGS` and are flagged `isDemo: true`. Show demo notices where data appears.
 - Real place names/coordinates in `DEMO_PLACES` are geographic reference data, not listings.
-- Do not modify shared files: `src/App.tsx`, `src/components/**` (except creating a new uniquely named folder),
-  `src/features/**`, `src/store/**`, `src/styles/**`, configs, or package.json. Only replace your assigned page files.
+- Do not modify shared files: `src/App.jsx`, `src/components/**` (except creating a new uniquely named folder),
+  `src/features/**`, `src/store/**`, `src/styles/**`, `server/**`, configs, or package.json. Only replace your assigned page files.
 - Keep layouts responsive at 375px, 768px and 1440px. Use `shell`, `card`, `field-control`, `surface-muted` helpers.
 - Use existing UI primitives instead of hand-rolling inputs/buttons.
 
@@ -26,8 +28,9 @@
 - `@/components/layout/PageShell` — `<PageShell title description eyebrow breadcrumbs actions>children</PageShell>`.
 
 ## Data / services
-- `useListings()` from `@/features/listings/queries` → `Property[]` (demo repository, async).
+- `useListings()` from `@/features/listings/queries` → `Property[]` (Express API with local demo fallback).
 - `useListing(id)` → single `Property | null`.
+- The API exposes `GET /api/health`, `GET /api/listings` and `GET /api/listings/:id`; all listing responses are labelled demo records. Never add an endpoint that invents real data.
 - `Property` shape in `@/features/listings/types` includes `prices: PriceBreakdown`, `location.coordinates`,
   `amenities`, `verification`, `source`, `lastUpdated`, `isDemo`, `contact: null` for demos.
 - `calculateEffectiveCost(prices, occupancy)` and `formatINR`, `formatDate` from `@/features/pricing/pricing`.

@@ -1,0 +1,33 @@
+import { forwardRef } from 'react';
+import { Link } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+const VARIANTS = {
+    primary: 'bg-ink-900 text-white hover:bg-ink-800 shadow-soft',
+    secondary: 'bg-teal-700 text-white hover:bg-teal-800 shadow-soft',
+    outline: 'border border-ink-200 bg-white text-ink-800 hover:border-ink-300 hover:bg-ink-50',
+    ghost: 'text-ink-600 hover:bg-ink-100 hover:text-ink-900',
+    danger: 'bg-red-600 text-white hover:bg-red-700',
+};
+const SIZES = {
+    sm: 'h-9 px-3 text-xs gap-1.5',
+    md: 'h-11 px-4 text-sm gap-2',
+    lg: 'h-12 px-5 text-sm gap-2',
+};
+export function buttonClasses(variant = 'primary', size = 'md', fullWidth = false, className) {
+    return cn('inline-flex items-center justify-center rounded-xl font-semibold transition-all duration-200 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]', VARIANTS[variant], SIZES[size], fullWidth && 'w-full', className);
+}
+export const Button = forwardRef(function Button({ variant, size, fullWidth, loading, leftIcon, rightIcon, className, children, disabled, ...props }, ref) {
+    return (<button ref={ref} className={buttonClasses(variant, size, fullWidth, className)} disabled={disabled || loading} aria-busy={loading || undefined} {...props}>
+      {loading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden/> : leftIcon}
+      {children}
+      {rightIcon}
+    </button>);
+});
+export function LinkButton({ variant = 'primary', size = 'md', fullWidth = false, className, leftIcon, rightIcon, children, ...props }) {
+    return (<Link className={buttonClasses(variant, size, fullWidth, className)} {...props}>
+      {leftIcon}
+      {children}
+      {rightIcon}
+    </Link>);
+}
