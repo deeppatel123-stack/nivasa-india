@@ -105,6 +105,17 @@ const SEEDS: DemoSeed[] = [
     rules: ['No smoking', 'Visitors until 9 PM', 'College ID required'], availableFrom: '2026-12-01', imageStart: 0, featured: true,
   },
   {
+    id: 'demo-nirma-budget-pg',
+    title: 'Nirma Budget Shared PG',
+    category: 'pg',
+    description: 'A lower-cost sample PG configuration used to demonstrate budget-focused recommendations near a campus.',
+    city: 'Ahmedabad', state: 'Gujarat', locality: 'Gota, Ahmedabad', landmark: 'Nirma University',
+    lat: 22.7678, lng: 72.3129, rent: 5500, deposit: 4000, food: 1800, electricity: 300,
+    occupancy: 'triple', furnishing: 'semi_furnished', gender: 'boys',
+    amenities: ['wifi', 'attached_bathroom', 'food', 'laundry', 'security', 'power_backup', 'study_room'],
+    rules: ['No smoking', 'College ID required'], availableFrom: '2026-12-10', imageStart: 5,
+  },
+  {
     id: 'demo-nirma-girls-pg',
     title: 'SG Highway Girls PG',
     category: 'pg',

@@ -68,6 +68,8 @@ export interface LinkButtonProps extends LinkProps {
   size?: ButtonSize;
   fullWidth?: boolean;
   className?: string;
+  leftIcon?: ReactNode;
+  rightIcon?: ReactNode;
   children: ReactNode;
 }
 
@@ -76,12 +78,16 @@ export function LinkButton({
   size = 'md',
   fullWidth = false,
   className,
+  leftIcon,
+  rightIcon,
   children,
   ...props
 }: LinkButtonProps) {
   return (
     <Link className={buttonClasses(variant, size, fullWidth, className)} {...props}>
+      {leftIcon}
       {children}
+      {rightIcon}
     </Link>
   );
 }
