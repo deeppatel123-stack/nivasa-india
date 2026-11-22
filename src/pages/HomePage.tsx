@@ -117,7 +117,7 @@ function StepCard({
         <span className="grid h-10 w-10 place-items-center rounded-xl bg-ink-950 text-teal-300">
           <Icon className="h-5 w-5" aria-hidden />
         </span>
-        <span className="font-display text-2xl font-extrabold text-ink-200">{number}</span>
+        <span className="font-display text-2xl font-extrabold text-ink-400">{number}</span>
       </div>
       <h3 className="mt-4 font-display text-sm font-bold text-ink-950">{title}</h3>
       <p className="mt-1.5 text-xs leading-relaxed text-ink-500">{body}</p>

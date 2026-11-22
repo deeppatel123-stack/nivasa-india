@@ -13,6 +13,20 @@ export default defineConfig({
     host: true,
     port: 5173,
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return;
+          if (id.includes('leaflet')) return 'map';
+          if (id.includes('framer-motion')) return 'motion';
+          if (id.includes('lucide-react')) return 'icons';
+          if (id.includes('@tanstack') || id.includes('zustand')) return 'state';
+          if (id.includes('react')) return 'react';
+        },
+      },
+    },
+  },
   test: {
     environment: 'jsdom',
     globals: true,

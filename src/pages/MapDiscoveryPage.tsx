@@ -195,7 +195,7 @@ export function MapDiscoveryPage() {
       </div>
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,0.44fr)_minmax(0,0.56fr)]">
-        <section className="order-2 lg:order-1" aria-label="Stays on the map">
+        <section className="order-2 min-w-0 lg:order-1" aria-label="Stays on the map">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <p className="text-xs font-medium text-ink-600" aria-live="polite">
               {isLoading
@@ -209,7 +209,7 @@ export function MapDiscoveryPage() {
           {cards}
         </section>
 
-        <div className="order-1 lg:order-2">
+        <div className="order-1 min-w-0 lg:order-2">
           <div className="h-[380px] sm:h-[460px] lg:sticky lg:top-24 lg:h-[640px]">
             <MapView scene={scene} className="h-full w-full border border-ink-100" />
           </div>

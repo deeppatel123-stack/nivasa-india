@@ -272,7 +272,7 @@ export function AboutPage() {
                   <span className="grid h-9 w-9 place-items-center rounded-xl bg-teal-50 text-teal-700">
                     <Icon className="h-4 w-4" aria-hidden />
                   </span>
-                  <span className="font-display text-lg font-extrabold text-ink-200">{step.number}</span>
+                  <span className="font-display text-lg font-extrabold text-ink-400">{step.number}</span>
                 </div>
                 <h3 className="mt-4 text-sm font-bold text-ink-900">{step.title}</h3>
                 <p className="mt-2 text-xs leading-relaxed text-ink-500">{step.description}</p>

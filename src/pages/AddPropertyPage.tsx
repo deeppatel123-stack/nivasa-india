@@ -231,7 +231,7 @@ function FormSection({
           <Icon className="h-4 w-4" aria-hidden />
         </span>
         <div>
-          <h3 className="font-display text-base font-bold text-ink-900">{title}</h3>
+          <h2 className="font-display text-base font-bold text-ink-900">{title}</h2>
           {description && <p className="mt-1 text-xs leading-relaxed text-ink-500">{description}</p>}
         </div>
       </div>
@@ -784,7 +784,7 @@ export function AddPropertyPage() {
                         <Send className="h-4 w-4" aria-hidden />
                       </span>
                       <div>
-                        <h3 className="font-display text-base font-bold text-ink-900">Contact preference</h3>
+                        <h2 className="font-display text-base font-bold text-ink-900">Contact preference</h2>
                         <p className="mt-1 text-xs leading-relaxed text-ink-500">
                           Choose a channel for a future verified listing. Do not enter real contact details here.
                         </p>

@@ -248,7 +248,7 @@ export function OwnerDashboardPage() {
                     <span className="grid h-10 w-10 place-items-center rounded-xl bg-ink-50 text-ink-700">
                       <Icon className="h-5 w-5" aria-hidden />
                     </span>
-                    <span className="font-display text-xs font-bold tracking-widest text-ink-300">
+                    <span className="font-display text-xs font-bold tracking-widest text-ink-400">
                       {String(index + 1).padStart(2, '0')}
                     </span>
                   </div>

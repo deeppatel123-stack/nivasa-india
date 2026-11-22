@@ -56,12 +56,14 @@ function LeafletMapView({ scene, className }: { scene: MapSceneModel; className?
       .bindPopup('<strong>Search centre</strong>')
       .addTo(layer);
 
-    scene.markers.forEach((marker) => {
+    scene.markers.forEach((marker, index) => {
+      // Stagger nearby labels vertically so their tap targets do not overlap.
+      const stagger = index % 2 === 0 ? -14 : 14;
       const icon = L.divIcon({
-        className: '',
+        className: 'nivasa-marker-wrap',
         html: `<div class="nivasa-marker${marker.isActive ? ' is-active' : ''}">${marker.priceLabel}</div>`,
-        iconSize: [92, 28],
-        iconAnchor: [46, 14],
+        iconSize: [104, 44],
+        iconAnchor: [52, 22 + stagger],
       });
       L.marker([marker.coordinates.lat, marker.coordinates.lng], { icon })
         .bindPopup(`<strong>${marker.label}</strong><br/>${marker.priceLabel} · illustrative demo`)

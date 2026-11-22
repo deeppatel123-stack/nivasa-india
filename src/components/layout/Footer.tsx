@@ -55,7 +55,7 @@ export function Footer() {
         <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
           {COLUMNS.map((column) => (
             <div key={column.title}>
-              <h3 className="mb-3 text-xs font-bold uppercase tracking-[0.12em] text-white/80">{column.title}</h3>
+              <h2 className="mb-3 text-xs font-bold uppercase tracking-[0.12em] text-white/80">{column.title}</h2>
               <ul className="space-y-2">
                 {column.links.map((link) => (
                   <li key={link.to}>
@@ -70,7 +70,7 @@ export function Footer() {
         </div>
       </div>
       <div className="border-t border-white/10">
-        <div className="shell flex flex-col gap-3 py-5 text-[11px] text-white/40 sm:flex-row sm:items-center sm:justify-between">
+        <div className="shell flex flex-col gap-3 py-5 text-[11px] text-white/60 sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} Nivasa. Frontend demonstration build.</p>
           <p className="flex items-center gap-2">
             No real listings, contacts or prices are displayed.{' '}

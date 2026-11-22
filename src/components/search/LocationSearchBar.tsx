@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
+import { useEffect, useId, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Building2, Check, GraduationCap, Landmark, LocateFixed, MapPin, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -39,6 +39,7 @@ export function LocationSearchBar({
   const [activeIndex, setActiveIndex] = useState(0);
   const [locating, setLocating] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const listboxId = useId();
 
   const suggestions = useMemo(() => demoGeocoder.suggest(text, 7), [text]);
 
@@ -157,8 +158,13 @@ export function LocationSearchBar({
             onKeyDown={onKeyDown}
             placeholder="Search city, college, office, locality or landmark"
             aria-label="Search location"
+            role="combobox"
             aria-autocomplete="list"
+            aria-controls={listboxId}
             aria-expanded={open && suggestions.length > 0}
+            aria-activedescendant={
+              open && suggestions.length > 0 ? `${listboxId}-option-${activeIndex}` : undefined
+            }
             className={cn(
               'min-w-0 flex-1 bg-transparent py-2.5 text-sm font-medium text-ink-900 placeholder:font-normal placeholder:text-ink-400 focus:outline-none',
               isHero && 'sm:py-3 sm:text-[15px]',
@@ -181,6 +187,7 @@ export function LocationSearchBar({
           )}
           {open && suggestions.length > 0 && (
             <div
+              id={listboxId}
               role="listbox"
               className="absolute left-0 right-0 top-[calc(100%+10px)] z-50 max-h-72 overflow-auto rounded-2xl border border-ink-100 bg-white p-1.5 shadow-lift"
             >
@@ -192,6 +199,7 @@ export function LocationSearchBar({
                 return (
                   <button
                     key={place.id}
+                    id={`${listboxId}-option-${index}`}
                     type="button"
                     role="option"
                     aria-selected={index === activeIndex}
