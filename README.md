@@ -1,131 +1,132 @@
 # Nivasa — Pan-India Accommodation Discovery (MERN)
 
-Nivasa is a rental and accommodation discovery experience for India, built with the **MERN stack in JavaScript** — React 19 + Vite on the client, Express + Node on the API, and optional MongoDB persistence.
+Nivasa is an accommodation **discovery** product for India, built in JavaScript with React 19 + Vite, Express + Node, and optional MongoDB persistence.
 
-🔗 Repository: https://github.com/deeppatel123-stack/nivasa-india
+It does **not** claim to be a rental marketplace. It resolves any Indian city, locality, landmark, office or address, then shows genuine, attributed accommodation place records from OpenStreetMap near that point. Rent, availability, contact details, photos and reviews are displayed only when a source supplied them; otherwise they read **“Not available”**.
 
-> **Data integrity notice:** every listing in this build is an explicitly labelled **illustrative demo
-> listing**. There are no real properties, real prices, real photographs of listed properties, real phone
-> numbers, real owners or real reviews. Demo prices are not market quotes. Auth, AI, owner submissions and
-> contact forms are clearly labelled UI previews.
+Repository: <https://github.com/deeppatel123-stack/nivasa-india>
 
 ---
 
 ## Quick start
 
-Node 20+ is recommended (developed on Node 22).
+Node 20+ (developed on Node 22).
 
 ```bash
 npm install
-npm run dev          # React client only — falls back to local demo data (http://localhost:5173)
-npm run dev:full     # Express API + Vite client together (API on :5000, client on :5173)
+cp .env.example .env          # optional; see configuration below
+npm run dev:full              # API on :5000, client on :5173
 ```
 
-Optional MongoDB persistence:
+Client only (the UI requires the API for search, auth and forms):
 
 ```bash
-cp .env.example .env
-# set MONGODB_URI=mongodb://127.0.0.1:27017/nivasa
-npm run dev:full
+npm run dev                   # http://localhost:5173
 ```
 
-The API seeds the same labelled demo records into MongoDB on first run. Without `MONGODB_URI`, it serves them from memory — no database required.
-
-### Useful commands
+Production:
 
 ```bash
-npm run test         # Vitest unit tests
-npm run build        # Production client build
-npm run preview      # Preview the production client
-npm start            # Express serves /api and the built client from dist/
+npm run build
+npm start                     # Express serves /api and frontend/dist
 ```
+
+### Environment
+
+| Variable | Purpose | Default |
+| --- | --- | --- |
+| `PORT` | API port | `5000` |
+| `CLIENT_ORIGIN` | Comma-separated CORS origins | `http://localhost:5173,http://localhost:4173` |
+| `MONGODB_URI` | Optional MongoDB persistence | unset (JSON-file fallback) |
+| `JWT_SECRET` | Required for signed auth tokens in production | ephemeral dev secret |
+| `GEOCODER_USER_AGENT` | Contact-capable User-Agent for Nominatim | `Nivasa/1.0 …` |
+| `GEOCODE_MIN_INTERVAL_MS` | Nominatim rate-limit spacing | `1200` |
+| `DISCOVERY_CACHE_TTL_MS` | Nearby-discovery cache | `900000` |
+| `GOOGLE_MAPS_API_KEY` | Reserved for an authorized Places adapter | unset |
+
+Without `MONGODB_URI`, account, contact, enquiry and owner-submission data is saved to a local JSON file and every response reports `storage: 'local-development-file'`. This is real persistence for development, not a mock inbox or fabricated listing feed. For production, configure MongoDB and a durable `JWT_SECRET`.
 
 ---
 
 ## Architecture
 
-```
-src/                         React 19 client (JavaScript + JSX)
-├─ App.jsx                   route table
-├─ components/
-│  ├─ ui/                    Button, Input, Modal, Badge, EmptyState…
-│  ├─ layout/                Navbar, Footer, PageShell
-│  ├─ common/                demo disclosure, verification, price display, errors
-│  ├─ property/ search/ map/ compare/
-│  └─ discovery/ account/ detail/ owner/ content/  page-specific helpers
-├─ features/
-│  ├─ listings/              demo dataset, API repository, React Query hooks
-│  ├─ locations/             place index, geocoder interface, distance helpers
-│  ├─ search/ pricing/ ai/ auth/ map/
-│  ├─ store/                 Zustand stores
-│  └─ pages/                 19 route pages + 404/forgot-password
-└─ test/                     Vitest setup
+```text
+frontend/                         React 19 client
+├─ src/
+│  ├─ components/                 UI, layout, search, map, property, account, detail, owner
+│  ├─ features/                   listings, search, pricing, geocoding, AI, map, auth
+│  ├─ pages/                      route pages
+│  ├─ services/                   API, geocoding, auth token
+│  ├─ store/                      Zustand stores
+│  └─ test/                       Vitest setup
+└─ vite.config.js                 /api proxy + chunk splitting
 
-server/                      Express API (JavaScript, ESM)
-├─ index.js                  bootstrap + graceful shutdown
-├─ app.js                    middleware, routes, static client hosting
-├─ config/db.js              optional Mongoose connection
-├─ models/Listing.js         Mongoose listing schema
-├─ routes/
-│  ├─ health.js              GET /api/health
-│  └─ listings.js            GET /api/listings, GET /api/listings/:id
-└─ middleware/errorHandler.js
+backend/                          Express API
+├─ src/
+│  ├─ config/                     env + Mongo connection
+│  ├─ controllers/                HTTP layer
+│  ├─ middleware/                 auth
+│  ├─ models/                     Mongoose listing schema
+│  ├─ routes/                     /api surface
+│  ├─ services/                   geocoding, discovery, listings, submissions, auth, messages
+│  ├─ utils/                      cache, rate limiting, file store, errors, geo
+│  └─ validators/                 request validation
+└─ tests/                         Vitest suites
 ```
+
+### API surface
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/api/health` | Live status and data mode |
+| `GET` | `/api/geocode/suggest` | Photon typeahead via server cache/rate limit |
+| `GET` | `/api/geocode/resolve` | Nominatim forward geocoding |
+| `GET` | `/api/geocode/reverse` | Nominatim reverse geocoding |
+| `GET` | `/api/geocode/status` | Provider configuration and key availability |
+| `GET` | `/api/listings` | Genuine records near `lat`,`lng`,`radiusKm` with filters/sort |
+| `GET` | `/api/listings/:id` | Single genuine record |
+| `POST` | `/api/auth/register` | Real account creation |
+| `POST` | `/api/auth/login` | Real password verification |
+| `GET` | `/api/auth/me` | Verify token and return user |
+| `POST` | `/api/auth/forgot-password` | Honest “email delivery not configured” response |
+| `POST` | `/api/contact` | Persist a contact message |
+| `POST` | `/api/enquiries` | Persist an enquiry about a genuine record |
+| `GET` | `/api/enquiries` | User's enquiries (auth required) |
+| `POST` | `/api/submissions` | Owner submission, pending moderation (auth required) |
+| `GET` | `/api/submissions` | Current owner's submissions (auth required) |
+
+Every listing response includes provider, source URL, fetched timestamp, verification state, availability and a data-quality label. The API sets `X-Nivasa-*` headers describing the data mode.
 
 ### Data flow
 
-1. `useListings()` / `useListing(id)` call `listingRepository` (`features/listings/repository.js`).
-2. It requests `/api/listings` (Vite proxies this to Express in development; Express serves it directly in production).
-3. If the API is unavailable, the repository falls back to the identical local `DEMO_LISTINGS` module — the UI never invents data.
-4. The Express API reads from MongoDB when connected (auto-seeding the labelled demo records if empty), otherwise from the same shared demo module.
-5. `searchListings()` applies filters, haversine radius, cost calculation and scoring in the client. The same results power the map, assistant and comparison views.
+1. The user types any location. `LocationSearchBar` calls Photon through `/api/geocode/suggest`.
+2. Selecting a result resolves it through Nominatim and stores real coordinates plus provenance.
+3. `/api/listings` discovers genuine OSM accommodation POIs inside the real radius, caches them, applies server-side filters/sort and returns attributed records.
+4. The client re-checks radius/filters, ranks by proximity and completeness, and renders list/map results.
+5. Saved, compared and recently viewed pages persist full record snapshots locally so they never need invented data.
 
-Every API response carries `X-Nivasa-Data-Mode` and `X-Nivasa-Data-Notice` headers so the demo status is explicit.
-
-### Integration boundaries
-
-| Concern | Current implementation | Future integration point |
-| --- | --- | --- |
-| Property data | Express `/api/listings` with labelled demo records | verified owner/provider API + moderation |
-| Geocoding | curated real-place index | implement `Geocoder` in `features/locations/geocoder.js` |
-| Maps | Leaflet + OpenStreetMap (or `VITE_MAP_PROVIDER=demo`) | `features/map/provider.js` |
-| AI | `demoRulesAssistant` | implement `RentalAssistant` in `features/ai/assistant.js` |
-| Auth | local demo session | replace `authService` with real auth/backend calls |
-| Owner submissions | UI previews only | connect an authenticated owner API |
-
-No secret keys are required. See `.env.example` for optional settings.
+No demo catalogue, no silent mock fallback and no scraping are present. See `docs/DATA_SOURCES.md` for the source investigation and `docs/FINAL_REPORT.md` for implementation status and blockers.
 
 ---
 
 ## Data policy
 
-1. Never invent property listings, contact numbers, owners, reviews or market prices.
-2. Demo records are flagged `isDemo: true`, `verification: 'demo'`, `source.type: 'demo'`, `contact: null`, `lastUpdated: null` and `rating: null`, with a visible "Illustrative demo listing — not a real property" label.
-3. Photography is generic, royalty-free stock imagery credited as illustrative; it is never presented as a photograph of an actual listing.
-4. Contact CTAs explain that verified contact information appears only after real providers or owners are connected.
-5. Future data acquisition must use authorised APIs, partnerships, permitted public data or verified owner submissions, with source attribution, update timestamps and clear verification states. No scraping.
+1. No fabricated property, price, coordinate, phone, owner, review, image-of-property or availability.
+2. Missing values render as **“Not available”**, never inferred.
+3. Only attributable, permitted sources are ingested: OSM place data, owner submissions and future authorized feeds.
+4. Owner submissions are `pending` / unpublished until a moderation workflow approves them.
+5. If a provider is unavailable, the UI shows an honest empty/error state.
 
 ---
 
-## Testing workflow
-
-After each major change:
+## Testing
 
 ```bash
-npm run test && npm run build
+npm run test              # backend + frontend Vitest suites
+npm run test:backend
+npm run test:frontend
+npm run build
+npm run dev:full
 ```
 
-Then exercise the app in a browser: every route, search/filter controls, save/compare actions, auth forms,
-owner forms, empty states, and 375px / 768px / 1440px layouts. Check the console for errors and confirm
-`/api/health` reports `status: ok`. See `docs/TESTING.md` and `docs/QA_RESULTS.md`.
-
----
-
-## Roadmap (not implemented)
-
-- Authenticated owner workflows, moderation and verified enquiry delivery.
-- Authorised property-provider integrations with freshness tracking.
-- Real geocoding and commercial map providers.
-- Real AI recommendation service with explainable rankings.
-- Moderated reviews, visit scheduling and notifications.
-- Full privacy/legal review before public launch.
+Browser QA should cover desktop (1440px), laptop (1280px), tablet (768px) and mobile (375px): arbitrary-location search, radius/filter/sort, map/list linking, save/compare/recent, account flows, contact, owner submission and enquiry. Confirm `/api/health` returns `status: ok` and the browser console is free of errors.

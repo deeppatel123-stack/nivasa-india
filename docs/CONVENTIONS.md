@@ -1,55 +1,50 @@
-# Nivasa conventions (read before writing code)
+# Nivasa conventions
 
 ## Absolute rules
+
 - JavaScript + JSX only (ESM). React 19, Tailwind CSS 3, React Router 7, Zustand, TanStack Query.
-- Client code lives in `src/`; the Express API lives in `server/`. Both use `.js`/`.jsx`.
-- Import from `src/` with the `@/` alias (e.g. `@/components/ui/Button`). Inside `src/features/listings/`, relative imports include the `.js` extension so the API can reuse the demo module in Node.
-- In `server/`, relative imports must include the `.js` extension (native Node ESM).
-- **Never invent a real property, phone number, owner name, market price or review.** All listings come from
-  `DEMO_LISTINGS` and are flagged `isDemo: true`. Show demo notices where data appears.
-- Real place names/coordinates in `DEMO_PLACES` are geographic reference data, not listings.
-- Do not modify shared files: `src/App.jsx`, `src/components/**` (except creating a new uniquely named folder),
-  `src/features/**`, `src/store/**`, `src/styles/**`, `server/**`, configs, or package.json. Only replace your assigned page files.
-- Keep layouts responsive at 375px, 768px and 1440px. Use `shell`, `card`, `field-control`, `surface-muted` helpers.
+- Client code lives in `frontend/src/`; Express code lives in `backend/src/`.
+- Use the `@/` alias inside the client. Node ESM imports inside `backend/` include the `.js` extension.
+- **Never invent a real property, phone number, owner name, market price, review or availability date.**
+- Genuine geographic records may have missing economics; those fields stay `null` and render **“Not available”**.
+- All upstream place data carries source name, source URL, fetched timestamp, verification state and quality label.
+- No scraping, auth bypass, anti-bot bypass or Terms-of-Service violations.
+- Keep layouts responsive at 375px, 768px and 1440px. Use `shell`, `card`, `field-control`, `surface-muted`.
 - Use existing UI primitives instead of hand-rolling inputs/buttons.
+- Every control must do something real. If a capability is not connected, show an honest unavailable state rather than a decorative button.
 
 ## Available primitives
-- `@/components/ui/Button` — `Button`, `LinkButton`, `buttonClasses`; variants `primary|secondary|outline|ghost|danger`, sizes `sm|md|lg`.
-- `@/components/ui/Badge` — `Badge`, tones `neutral|teal|amber|orange|blue|red|green`.
-- `@/components/ui/Input`, `Select`, `Checkbox`, `Toggle`, `Modal`, `Skeleton`, `PropertyCardSkeleton`, `EmptyState`, `SectionHeading`, `ToastViewport`.
-- `@/components/common/DemoDisclosure` — `<DemoDisclosure />` or `<DemoDisclosure compact />`.
-- `@/components/common/VerificationBadge` — `<VerificationBadge state={property.verification} />`.
-- `@/components/common/PriceDisplay`, `@/components/common/ErrorBoundary`.
+
+- `@/components/ui/Button` — `Button`, `LinkButton`, `buttonClasses`.
+- `@/components/ui/Badge`, `Input`, `Select`, `Checkbox`, `Toggle`, `Modal`, `Skeleton`, `EmptyState`, `SectionHeading`, `ToastViewport`.
+- `@/components/common/DataQualityNotice` — use `<DataQualityNotice compact />` where source completeness needs explaining.
+- `@/components/common/VerificationBadge`, `PriceDisplay`, `ErrorBoundary`.
 - `@/components/property/PropertyCard` — `<PropertyCard property={p} result={maybeResult} layout="grid|list" />`.
-- `@/components/search/LocationSearchBar` — `<LocationSearchBar variant="hero|compact" disableNavigation onSearched />`.
-- `@/components/search/SearchFiltersPanel` — global store-backed filter panel.
-- `@/components/map/MapView` — `<MapView scene={{ center, radiusKm, markers, selectedId, onSelect }} />`.
+- `@/components/search/LocationSearchBar` — remote Photon/Nominatim search, keyboard selection, GPS.
+- `@/components/discovery/ActiveFilterChips`, `useListingResults`, `useSearchUrlSync`.
+- `@/components/map/MapView` — `<MapView scene={{ center, radiusKm, markers, selectedId, onSelect, showRadius }} />`.
 - `@/components/compare/CompareTray` is global; never render it inside a page.
 - `@/components/layout/PageShell` — `<PageShell title description eyebrow breadcrumbs actions>children</PageShell>`.
 
 ## Data / services
-- `useListings()` from `@/features/listings/queries` → `Property[]` (Express API with local demo fallback).
-- `useListing(id)` → single `Property | null`.
-- The API exposes `GET /api/health`, `GET /api/listings` and `GET /api/listings/:id`; all listing responses are labelled demo records. Never add an endpoint that invents real data.
-- `Property` shape in `@/features/listings/types` includes `prices: PriceBreakdown`, `location.coordinates`,
-  `amenities`, `verification`, `source`, `lastUpdated`, `isDemo`, `contact: null` for demos.
-- `calculateEffectiveCost(prices, occupancy)` and `formatINR`, `formatDate` from `@/features/pricing/pricing`.
-- `searchListings(listings, state, origin)` from `@/features/search/searchEngine` → `SearchResult[]`
-  (`property`, `distanceKm`, `monthlyExpense`, `perPersonMonthly`, `firstMonthOutflow`, `score`).
-- `demoGeocoder.suggest(query)` / `.resolve(query)` from `@/features/locations/geocoder`.
-- `DEMO_PLACES`, `POPULAR_CITIES`, `POPULAR_UNIVERSITIES`, `POPULAR_TECH_HUBS` from `@/features/locations/demoLocations`.
-- `haversineKm`, `formatDistance`, `estimateWalkMinutes` from `@/features/locations/distance`.
-- `demoRulesAssistant.reply(input, { location, radiusKm, results })` from `@/features/ai/assistant`.
-- `authService` + `useAuthStore` (`user`, `signIn`, `signUp`, `googleSignIn`, `requestPasswordReset`, `signOut`).
-  Auth is UI-only and clearly labelled demo.
+
+- `useListings()` returns locally cached genuine records only (no demo catalogue).
+- `useSearchListings(params)` and `useListing(id)` use TanStack Query against `/api/listings`.
+- `geocodingService.suggest/resolve/reverse/status` proxies OSM providers.
+- `apiFetch` adds the bearer token and throws `ApiError` with status/details.
+- `calculateEffectiveCost`, `formatINR`, `formatDate` live in `@/features/pricing/pricing`.
+- `searchListings` returns `{ property, distanceKm, monthlyExpense, perPersonMonthly, firstMonthOutflow, score }`.
+- `groundedAssistant.reply(input, { location, radiusKm, results })` ranks only supplied genuine records.
+- `haversineKm`, `formatDistance`, `estimateWalkMinutes` live in `@/features/locations/distance`.
 
 ## Stores
-- `useSearchStore`: `query`, `radiusKm`, `filters`, `sort`, `resolvedLocation`, setters.
-- `useSavedStore`: `ids`, `toggle`, `remove`, `clear`.
-- `useCompareStore`: `ids`, `toggle`, `remove`, `clear`, `MAX_COMPARE = 4`.
-- `useRecentlyViewedStore`: `ids`, `add`, `clear`.
+
+- `useSearchStore`: `query`, `radiusKm`, `filters`, `sort`, `resolvedLocation`.
+- `useSavedStore`: `ids`, `items`, `toggle(id, property)`, `remove`, `clear`.
+- `useCompareStore`: `ids`, `items`, `toggle(id, property)`, `MAX_COMPARE = 4`.
+- `useRecentlyViewedStore`: `ids`, `items`, `add(id, property)`, `clear`.
 - `useToastStore`: `push(message, tone)`, `dismiss`, `toasts`.
 
 ## Suggested visual language
-Deep ink navy (#0b161e) + teal (#148b75) + saffron (#ea580c) accents on warm off-white (#f7f8f7).
-Rounded 12–20px surfaces, fine borders, soft shadows, generous whitespace, restrained motion. No giant gradients, no fake statistics/testimonials.
+
+Deep ink navy (`#0b161e`), teal (`#148b75`) and saffron (`#ea580c`) on warm off-white (`#f7f8f7`). Rounded 12–20px surfaces, fine borders, soft shadows, generous whitespace, restrained motion. No fake statistics, testimonials or stock photos presented as property photos.

@@ -6,6 +6,7 @@ dist-ssr
 .env.*.local
 *.local
 coverage
+backend/data/
 .DS_Store
 Thumbs.db
 npm-debug.log*

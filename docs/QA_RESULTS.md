@@ -1,28 +1,50 @@
-# QA results — 22 Nov 2026 (MERN + JavaScript conversion)
+# QA results — 23 Nov 2026 (real-data rebuild)
 
 ## Automated checks
-- `npm run test` — 3 files, 12 tests passed (Vitest 5.1.1).
-- `npm run build` — passed; vendor chunks split into `react`, `map`, `state`, `icons` and `motion` (no chunk-size warning).
-- `npm audit` / `npm audit --omit=dev` — 0 vulnerabilities.
-- No TypeScript files or configs remain in `src/`, `server/` or the project root.
 
-## API verification
-- `GET /api/health` → `status: ok`, `dataMode: demo-memory` when no `MONGODB_URI` is configured.
-- `GET /api/listings` → 19 records, all `isDemo: true`, `verification: 'demo'`, `contact: null`.
-- `GET /api/listings/demo-nirma-budget-pg` → correct labelled demo record.
-- `GET /api/listings/does-not-exist` → 404 with demo notice.
-- `GET /api/listings?category=pg&city=Ahmedabad` → 3 filtered demo records.
-- Response headers include `X-Nivasa-Data-Mode` and an ASCII-safe `X-Nivasa-Data-Notice`.
+- `npm run test` — **39 tests passed** (14 frontend, 25 backend; Vitest 5.1.1).
+- `npm run build` — passed; chunks split into `react`, `map`, `state`, `icons` and app entry.
+- No TypeScript files remain in the active `frontend/` or `backend/` trees.
+- No demo catalogue, demo geocoder or silent mock fallback remains in application paths.
 
-## Browser verification
-- Used the connected Edge browser through OpenCode Browse.
-- `/search?q=Nirma%20University&radius=5` rendered "Stays near Nirma University" with demo disclosures and no console errors.
-- Captured network traffic confirmed `GET /api/listings` through the Vite proxy returned 200 from Express (`x-powered-by: Express`, `x-nivasa-data-mode: demo-memory`).
-- No horizontal overflow on the checked search page.
+## API verification (live server)
 
-## Conversion notes
-- All 59 `.tsx` files became `.jsx` and all 28 `.ts` files became `.js` using TypeScript's emitter with `jsx: preserve`; runtime behaviour and JSX readability were retained.
-- `vite.config.ts` → `vite.config.js` (ESM-safe `__dirname` replacement) and `tailwind.config.ts` → `tailwind.config.js`.
-- `index.html` now loads `/src/main.jsx`.
-- Added the Express/MongoDB API, optional `.env` configuration, `dev:full` and production `start` scripts.
-- Frontend queries now use the API repository with a graceful in-memory demo fallback.
+| Check | Result |
+| --- | --- |
+| `GET /api/health` | `status: ok`, `dataMode: genuine-geographic-records` |
+| `GET /api/geocode/suggest?q=IIT%20Bombay` | Photon results with real coordinates |
+| `GET /api/geocode/resolve?q=IIT%20Bombay%20Mumbai` | Nominatim result: `19.1326186, 72.9149702` |
+| `GET /api/listings?lat=19.1326&lng=72.9150&radiusKm=5` | 1 genuine OSM record, 0 upstream errors |
+| `GET /api/listings/osm:way:195072877` (cold cache) | 200; record re-fetched from Nominatim lookup |
+| `GET /api/listings/does-not-exist` | 404 |
+| `POST /api/auth/register` / `/login` / `GET /me` | Real token + scrypt password flow; `storage: local-development-file` |
+| `POST /api/auth/forgot-password` | `delivery: not-configured`; explicitly says no email was sent |
+| `POST /api/contact` | Persisted record with returned ID |
+| `POST /api/enquiries` | Persisted record with returned ID |
+| `GET /api/submissions` unauthenticated | 401 |
+| `POST /api/submissions` authenticated | `status: pending`, `published: false`, returned ID |
+| Production CSP | Allows OSM tiles and Google Fonts; no CSP console violations |
+
+## Browser verification (connected Edge via OpenCode Browse)
+
+- Desktop sweep at **1440px** and laptop at **1280px**: all 22 routes rendered with no horizontal overflow, no error boundary and no console errors.
+- Tablet at **768px** and mobile at **375px**: 13 representative routes rendered with no horizontal overflow and no console errors.
+- `/explore` redirects to `/search`.
+- Typeahead: typing `IIT Bombay` returned Photon options; selecting the first produced `/search?...&lat=...&lng=...` and 1 genuine record.
+- Radius `0.5 km` produced an honest empty state; restoring `5 km` restored the record.
+- Max-rent filter excluded a record with no supplied rent; clearing filters restored it.
+- Save and compare persisted full record snapshots; `/wishlist` and `/compare` displayed the same genuine record after navigation.
+- Map view rendered OSM tiles and pin/card linking with attribution.
+- Enquiry modal submitted to `/api/enquiries` and showed the returned ID, storage mode and an explicit “no email was sent” notice.
+- Fixed during QA: location text was incorrectly used as a record keyword filter; property card had an out-of-scope `image` variable; Helmet CSP blocked OSM tiles; deep links failed after backend restart.
+- Limitation: the paired browser disconnected during the final register/profile UI check. Register/login/me were verified through the live API and unit tests instead.
+
+## Genuine record counts observed
+
+- IIT Bombay, 5 km: **1**.
+- IIT Delhi, 5 km: **1**.
+- IIT Madras, 5 km: **1**.
+- Nirma University, 5 km: **0** (honest empty state).
+- Six city-centre queries at 10 km (Ahmedabad, Mumbai, Delhi, Chennai, Pune, Bengaluru): **5 unique** OSM accommodation records; Delhi returned 0.
+
+Counts are live and source-dependent. There is no fixed catalogue in the product.

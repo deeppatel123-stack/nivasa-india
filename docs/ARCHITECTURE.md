@@ -1,52 +1,64 @@
 # Architecture notes
 
+## Workspaces
+
+- `frontend/` — React 19 + Vite client. Vite proxies `/api` to the Express API in development.
+- `backend/` — Express 4 API. In production it also serves `frontend/dist`.
+- Root `package.json` provides workspace scripts and runs both processes with `dev:full`.
+
 ## Layering
 
-Pages compose feature-agnostic UI primitives and feature services. Feature services are intentionally
-small interfaces so a demo implementation can be replaced without rewriting pages:
+### Frontend
+- `pages/` — route composition only.
+- `components/` — UI primitives, layout, feature components; no direct upstream fetch calls except through services.
+- `features/` — domain logic (`listings`, `search`, `pricing`, `ai`, `locations`, `map`, `auth`).
+- `services/` — `apiFetch`, geocoding client, auth token storage.
+- `store/` — Zustand stores with validated persistence.
 
-- `ListingRepository` — returns `Property[]`; Express REST API today with an identical local demo fallback.
-- `Geocoder` — resolves arbitrary Indian locations; demo uses a curated index of real places.
-- `RentalAssistant` — returns grounded recommendations; demo uses deterministic rules.
-- `MapProvider` — selects the map renderer; Leaflet/OSM today, schematic fallback available.
+Service boundaries:
+- `listingRepository` calls `/api/listings`; no demo fallback. Failure surfaces as an error state.
+- `geocodingService` calls Photon/Nominatim exclusively through the backend proxy.
+- `groundedAssistant` is a deterministic local ranker over the current genuine results; it is not an AI service.
+- `mapProvider` is Leaflet + OpenStreetMap tiles with ODbL attribution.
+
+### Backend
+- `config/` — environment, optional Mongo connection.
+- `routes/` — `/api` endpoint surface.
+- `controllers/` — request/response mapping.
+- `middleware/` — bearer-token authentication.
+- `services/` — geocoding providers, cache/rate limiting, OSM discovery, listing search, auth, messages, submissions.
+- `validators/` — request validation.
+- `utils/` — errors, geo math, file store, response helpers.
 
 ## Search pipeline
 
-1. `LocationSearchBar` resolves text/GPS into `ResolvedLocation` via `demoGeocoder`.
-2. `SearchState` (query, radius, filters, sort) is persisted in Zustand and reflected in the URL.
-3. `searchListings()` applies filters, haversine radius, cost calculation and scoring.
-4. Results feed the list, map and assistant. The same results power comparison cost calculations.
+1. `LocationSearchBar` queries Photon typeahead through `/api/geocode/suggest`.
+2. Selection or free-text submit is resolved to real coordinates through `/api/geocode/resolve` (Nominatim).
+3. Coordinates, radius, filters and sort are mirrored into the URL (`q`, `lat`, `lng`, `radius`, `category`).
+4. `/api/listings` performs bounded OSM accommodation discovery, caches results, enforces radius/filters/sort server-side and returns provenance.
+5. `searchListings()` re-checks the same constraints in the client and ranks by proximity plus data completeness. Missing prices are excluded from price sorts rather than treated as zero.
+6. The same result objects feed the grid, map, assistant and comparison.
 
 ## Cost model
 
-`calculateEffectiveCost()` keeps recurring monthly charges separate from one-time move-in payments and
-never double-counts included food/electricity. `perPersonMonthly` divides by occupancy so comparisons
-between a single room and a shared PG remain meaningful.
+`calculateEffectiveCost()` separates recurring monthly charges from one-time move-in payments, never counts included food/electricity twice, and returns `null` when a required figure is absent. `formatINR(null)` renders **“Not available”**. Deposits are not described as refundable unless a source explicitly says so.
 
 ## State ownership
 
-- Search state: `useSearchStore`
-- Shortlist: `useSavedStore`
-- Comparison (max 4): `useCompareStore`
-- Recently viewed: `useRecentlyViewedStore`
-- Demo session: `useAuthStore`
-- Notifications: `useToastStore`
+- Search state: `useSearchStore` (validated rehydration, URL sync).
+- Shortlist / comparison / recent trail: `useSavedStore`, `useCompareStore`, `useRecentlyViewedStore`; each stores full record snapshots plus IDs.
+- Auth: `useAuthStore` backed by `/api/auth/*` and a bearer token.
+- Notifications: `useToastStore`.
 
-All are small Zustand stores with narrow selectors to avoid unnecessary renders.
+## Persistence
 
-## MERN backend
-
-- `server/app.js` registers `/api/health` and `/api/listings`, then serves `dist/` in production so a single
-  Node process hosts the whole app.
-- `server/config/db.js` connects to MongoDB only when `MONGODB_URI` is set. When connected,
-  `server/models/Listing.js` stores the labelled demo records; an empty collection is seeded from the
-  shared `src/features/listings/demoListings.js` module.
-- `GET /api/listings` supports `q`, `city`, `category`, `minRent` and `maxRent` query filters and returns a
-  plain array for direct compatibility with `createRemoteListingRepository(baseUrl)`.
-- Both list and detail responses include `X-Nivasa-Data-Mode` and `X-Nivasa-Data-Notice` headers.
-- Vite proxies `/api` to `http://localhost:5000` during development; production uses the Express server directly.
+- MongoDB is optional for listing records.
+- Account, contact, enquiry and owner-submission records use MongoDB when connected, otherwise an explicit `backend/data/*.json` fallback. Every response reports `storage` so the UI can label it.
+- The file fallback is real persistence for development; it is not a simulated inbox and never generates listings.
 
 ## Safety rules for contributors
 
-See `docs/CONVENTIONS.md` and the data policy in `README.md`. Never add fabricated listing data or
-pretend a stub service is live.
+- Never add fabricated listings, prices, contacts, owners, reviews or availability.
+- Never present a stub as a live integration.
+- Never scrape a portal or bypass authentication/anti-bot controls.
+- Missing values must remain `null` and render as **“Not available”**.
