@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("../src/config/env.js", () => ({
-  env: { geocoderProvider: "photon", geocodeCacheTtlMs: 1000, geocodeMinIntervalMs: 0 },
+  env: { geocoderProvider: "photon", geocodeCacheTtlMs: 1000, geocodeMinIntervalMs: 0, googleMapsKey: "", googlePlacesBaseUrl: "https://places.googleapis.com/v1", googleGeocodeBaseUrl: "https://maps.googleapis.com/maps/api/geocode" },
 }));
 const getCached = vi.fn(() => null);
 const setCached = vi.fn();
@@ -10,8 +10,12 @@ const photonSuggest = vi.fn();
 const nominatimSearch = vi.fn();
 const nominatimReverse = vi.fn();
 vi.mock("../src/services/geocoding/providers.js", () => ({ photonSuggest, nominatimSearch, nominatimReverse }));
+const googleTextSearch = vi.fn();
+const googleGeocode = vi.fn();
+const googleStatus = vi.fn(() => ({ configured: false, keyEnv: "GOOGLE_MAPS_API_KEY" }));
+vi.mock("../src/services/geocoding/googlePlaces.js", () => ({ googleTextSearch, googleGeocode, googleStatus }));
 
-const { suggestPlaces, resolvePlace, reverseGeocode } = await import("../src/services/geocoding/index.js");
+const { suggestPlaces, resolvePlace, reverseGeocode, geocoderStatus } = await import("../src/services/geocoding/index.js");
 
 describe("India-first geocoding", () => {
   beforeEach(() => {
@@ -33,6 +37,14 @@ describe("India-first geocoding", () => {
     nominatimSearch.mockResolvedValue([]);
     photonSuggest.mockResolvedValue([{ id: "x", label: "London, UK", country: "UK", countryCode: "GB", coordinates: { lat: 51.5, lng: -0.1 } }]);
     await expect(resolvePlace("London")).rejects.toThrow(/India/);
+  });
+
+  it("includes provider diagnostics in status and suggestion responses", async () => {
+    photonSuggest.mockResolvedValue([]);
+    nominatimSearch.mockResolvedValue([]);
+    const result = await suggestPlaces("Unknown Place");
+    expect(result.diagnostics.providers.length).toBeGreaterThan(0);
+    expect(geocoderStatus().google.configured).toBe(false);
   });
 
   it("rejects reverse geocode outside India", async () => {
