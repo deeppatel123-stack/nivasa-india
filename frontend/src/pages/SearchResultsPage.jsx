@@ -9,7 +9,6 @@ import { PropertyCard } from '@/components/property/PropertyCard';
 import { LocationSearchBar } from '@/components/search/LocationSearchBar';
 import { SearchFiltersPanel } from '@/components/search/SearchFiltersPanel';
 import { Badge } from '@/components/ui/Badge';
-import { Badge } from '@/components/ui/Badge';
 import { Button, LinkButton, buttonClasses } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Modal } from '@/components/ui/Modal';
