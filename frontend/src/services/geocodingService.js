@@ -2,7 +2,7 @@ import { apiFetch } from './api';
 
 export const geocodingService = {
   async suggest(query, signal) {
-    if (!query || query.trim().length < 2) return { items: [], available: true };
+    if (!query || query.trim().length < 2) return { items: [], available: true, indiaOnly: true };
     const params = new URLSearchParams({ q: query.trim() });
     return apiFetch(`/geocode/suggest?${params}`, { signal });
   },
@@ -26,11 +26,19 @@ export const geocodingService = {
 export function toResolvedLocation(place) {
   if (!place?.coordinates) return null;
   return {
-    id: place.id || '',
+    id: place.placeId || place.id || '',
+    placeId: place.placeId || place.id || '',
     name: place.name || '',
-    label: place.label || 'Selected location',
+    label: place.label || place.formattedAddress || 'Selected location',
+    formattedAddress: place.formattedAddress || place.label || '',
+    locality: place.locality || '',
+    district: place.district || '',
     city: place.city || '',
     state: place.state || '',
+    country: place.country || 'India',
+    countryCode: place.countryCode || 'IN',
+    postcode: place.postcode || '',
+    category: place.category || '',
     coordinates: place.coordinates,
     provider: place.provider || '',
     sourceUrl: place.sourceUrl || '',

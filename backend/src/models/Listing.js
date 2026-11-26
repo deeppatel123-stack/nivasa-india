@@ -69,7 +69,7 @@ const listingSchema = new Schema(
     provider: {
       type: String,
       required: true,
-      enum: ['osm_nominatim', 'google_places', 'owner_submission', 'authorized_import'],
+      enum: ['osm_nominatim', 'google_places', 'owner_submission', 'authorized_import', 'demo_seed'],
     },
     title: { type: String, required: true },
     slug: { type: String, required: true, index: true },
@@ -85,7 +85,7 @@ const listingSchema = new Schema(
     source: { type: sourceSchema, required: true },
     verification: {
       type: String,
-      enum: ['unverified', 'verified'],
+      enum: ['unverified', 'verified', 'demo'],
       default: 'unverified',
     },
     availability: {

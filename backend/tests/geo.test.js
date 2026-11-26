@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { boundingBox, haversineKm, isValidCoordinate, normaliseText } from '../src/utils/geo.js';
+import {
+  boundingBox, haversineKm, isValidCoordinate, isWithinIndiaBounds, normaliseText, validateIndiaLocation,
+} from '../src/utils/geo.js';
 
 describe('geo utilities', () => {
   it('measures distance between real coordinates', () => {
@@ -24,5 +26,19 @@ describe('geo utilities', () => {
     expect(isValidCoordinate(23, 72)).toBe(true);
     expect(isValidCoordinate(95, 72)).toBe(false);
     expect(normaliseText('  PG-Accommodation, Pune! ')).toBe('pg accommodation pune');
+  });
+
+  it('validates India bounds and rejects foreign coordinates', () => {
+    expect(isWithinIndiaBounds(23.02, 72.57)).toBe(true);
+    expect(isWithinIndiaBounds(51.5074, -0.1278)).toBe(false); // London
+    expect(isWithinIndiaBounds(40.7128, -74.006)).toBe(false); // NYC
+  });
+
+  it('validates India location metadata', () => {
+    expect(validateIndiaLocation({ coordinates: { lat: 23.02, lng: 72.57 }, countryCode: 'IN' }).ok).toBe(true);
+    expect(validateIndiaLocation({ coordinates: { lat: 23.02, lng: 72.57 }, country: 'India' }).ok).toBe(true);
+    expect(validateIndiaLocation({ coordinates: { lat: 51.5074, lng: -0.1278 }, countryCode: 'GB' }).ok).toBe(false);
+    expect(validateIndiaLocation({ coordinates: { lat: 23.02, lng: 72.57 }, countryCode: 'PK' }).ok).toBe(false);
+    expect(validateIndiaLocation({ coordinates: { lat: 23.02, lng: 72.57 } }).ok).toBe(true); // inside bounds
   });
 });

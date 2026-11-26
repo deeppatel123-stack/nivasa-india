@@ -15,10 +15,10 @@ export function DataQualityNotice({ compact = false, className }) {
     <div className={cn('notice-strip', className)} role="note">
       <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
       <span>
-        <strong className="font-semibold">Genuine records, incomplete information.</strong>{' '}
-        Nivasa shows OpenStreetMap-sourced places with attribution for every record. Rent,
-        availability and contact details appear only when the source supplies them; otherwise
-        they read “Not available”. Treat unverified fields as a starting point, not a quote.
+        <strong className="font-semibold">Live records may be incomplete; demo records are labeled.</strong>{' '}
+        Nivasa shows attributed live place records where available. Rent, availability and contact
+        details appear only when a source supplies them; otherwise they read “Not available”.
+        Any development/testing record is marked <strong>DEMO DATA</strong> and is never a verified property.
       </span>
     </div>
   );

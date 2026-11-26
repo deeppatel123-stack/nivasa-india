@@ -67,28 +67,42 @@ export function LocationSearchBar({ variant = 'hero', disableNavigation = false,
   const commit = (location, shouldNavigate = true) => {
     const normalised = {
       ...location,
+      country: location.country || 'India',
+      countryCode: location.countryCode || 'IN',
       rawQuery: location.query || text.trim(),
     };
+    if (String(normalised.countryCode).toUpperCase() !== 'IN') {
+      pushToast('Nivasa currently supports locations within India only.', 'warning');
+      return;
+    }
     setQuery(normalised.query || normalised.label || text.trim());
     setResolvedLocation(normalised);
     setText(normalised.query || normalised.label || text.trim());
     setOpen(false);
     onSearched?.(normalised);
-    navigateTo(normalised);
+    if (shouldNavigate) navigateTo(normalised);
   };
 
   const pickPlace = (place, index = 0) => {
     commit({
       query: place.name || place.label,
+      id: place.placeId || place.id,
+      placeId: place.placeId || place.id,
       name: place.name,
       label: place.label,
+      formattedAddress: place.formattedAddress || place.label,
+      locality: place.locality,
+      district: place.district,
       city: place.city,
       state: place.state,
+      country: place.country || 'India',
+      countryCode: place.countryCode || 'IN',
+      postcode: place.postcode,
+      category: place.category,
       coordinates: place.coordinates,
       provider: place.provider,
       sourceUrl: place.sourceUrl,
       source: 'geocoder',
-      id: place.id,
     });
     setActiveIndex(index);
   };
@@ -97,7 +111,7 @@ export function LocationSearchBar({ variant = 'hero', disableNavigation = false,
     event.preventDefault();
     const raw = text.trim();
     if (!raw) {
-      pushToast('Enter a city, locality, landmark, office or full address to search.', 'warning');
+      pushToast('Enter an Indian city, locality, landmark, PIN code or full address to search.', 'warning');
       return;
     }
     if (open && suggestions[activeIndex]) {
@@ -109,19 +123,37 @@ export function LocationSearchBar({ variant = 'hero', disableNavigation = false,
       const place = await geocodingService.resolve(raw);
       commit({
         query: raw,
+        id: place.placeId || place.id,
+        placeId: place.placeId || place.id,
         name: place.name,
         label: place.label,
+        formattedAddress: place.formattedAddress || place.label,
+        locality: place.locality,
+        district: place.district,
         city: place.city,
         state: place.state,
+        country: place.country || 'India',
+        countryCode: place.countryCode || 'IN',
+        postcode: place.postcode,
+        category: place.category,
         coordinates: place.coordinates,
         provider: place.provider,
         sourceUrl: place.sourceUrl,
         source: 'geocoder',
-        id: place.id,
       });
     } catch (error) {
-      setResolvedLocation(null);
-      pushToast(error.message || 'This location could not be resolved. Try a city, locality or full address.', 'warning');
+      const alternatives = error?.details?.alternatives || error?.details?.items;
+      if (Array.isArray(alternatives) && alternatives.length) {
+        setSuggestions(alternatives);
+        setOpen(true);
+        pushToast(error.message || 'Multiple Indian locations match. Please select the correct one.', 'info');
+      } else {
+        setResolvedLocation(null);
+        pushToast(
+          error.message || 'No India location found. Try a city, locality, landmark, PIN code or full address in India.',
+          'warning',
+        );
+      }
     } finally {
       setSearching(false);
     }
@@ -142,24 +174,32 @@ export function LocationSearchBar({ variant = 'hero', disableNavigation = false,
           .then((place) => {
             commit({
               query: place.label || 'Current location',
+              id: place.placeId || place.id,
+              placeId: place.placeId || place.id,
+              name: place.name,
               label: place.label || 'Current location',
+              formattedAddress: place.formattedAddress || place.label,
+              locality: place.locality,
+              district: place.district,
               city: place.city,
               state: place.state,
+              country: 'India',
+              countryCode: 'IN',
+              postcode: place.postcode,
+              category: place.category,
               coordinates,
               provider: place.provider,
               sourceUrl: place.sourceUrl,
               source: 'gps',
             });
-            pushToast('Using your current location for this search.', 'success');
+            pushToast('Using your current location in India for this search.', 'success');
           })
-          .catch(() => {
-            commit({
-              query: 'Current location',
-              label: `${coordinates.lat.toFixed(4)}, ${coordinates.lng.toFixed(4)}`,
-              coordinates,
-              source: 'gps',
-            });
-            pushToast('Using your current location. Address lookup is unavailable.', 'info');
+          .catch((error) => {
+            setResolvedLocation(null);
+            pushToast(
+              error?.message || 'Current location is outside supported Indian locations or could not be validated.',
+              'warning',
+            );
           });
       },
       () => {
@@ -244,34 +284,45 @@ export function LocationSearchBar({ variant = 'hero', disableNavigation = false,
               className="absolute left-0 right-0 top-[calc(100%+10px)] z-50 max-h-72 overflow-auto rounded-2xl border border-ink-100 bg-white p-1.5 shadow-lift"
             >
               <p className="px-3 py-2 text-[10px] font-bold uppercase tracking-[0.14em] text-ink-400">
-                Places from OpenStreetMap
+                India locations
               </p>
-              {suggestions.map((place, index) => (
-                <button
-                  key={place.id}
-                  id={`${listboxId}-option-${index}`}
-                  type="button"
-                  role="option"
-                  aria-selected={index === activeIndex}
-                  onMouseEnter={() => setActiveIndex(index)}
-                  onClick={() => pickPlace(place, index)}
-                  className={cn(
-                    'flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition',
-                    index === activeIndex ? 'bg-ink-50' : 'hover:bg-ink-50',
-                  )}
-                >
-                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-white text-teal-700 ring-1 ring-ink-100">
-                    <MapPin className="h-4 w-4" aria-hidden />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-semibold text-ink-900">
-                      {place.name || place.label}
+              {suggestions.map((place, index) => {
+                const subtitle = [place.locality || place.district, place.city, place.state, 'India']
+                  .filter(Boolean)
+                  .filter((value, i, arr) => arr.indexOf(value) === i)
+                  .join(', ');
+                return (
+                  <button
+                    key={place.placeId || place.id}
+                    id={`${listboxId}-option-${index}`}
+                    type="button"
+                    role="option"
+                    aria-selected={index === activeIndex}
+                    onMouseEnter={() => setActiveIndex(index)}
+                    onClick={() => pickPlace(place, index)}
+                    className={cn(
+                      'flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition',
+                      index === activeIndex ? 'bg-ink-50' : 'hover:bg-ink-50',
+                    )}
+                  >
+                    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-white text-teal-700 ring-1 ring-ink-100">
+                      <MapPin className="h-4 w-4" aria-hidden />
                     </span>
-                    <span className="block truncate text-xs text-ink-500">{place.label}</span>
-                  </span>
-                  {index === activeIndex && <Check className="h-4 w-4 text-teal-600" aria-hidden />}
-                </button>
-              ))}
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-semibold text-ink-900">
+                        {place.name || place.label}
+                      </span>
+                      <span className="block truncate text-xs text-ink-500">{subtitle || place.formattedAddress || place.label}</span>
+                      {place.category && (
+                        <span className="mt-0.5 inline-flex rounded bg-ink-100 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-ink-500">
+                          {String(place.category).replace(/_/g, ' ')}
+                        </span>
+                      )}
+                    </span>
+                    {index === activeIndex && <Check className="h-4 w-4 text-teal-600" aria-hidden />}
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>

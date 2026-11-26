@@ -1,11 +1,13 @@
 import { dbState } from '../config/db.js';
 import { Listing } from '../models/Listing.js';
 import { badRequest, notFound } from '../utils/errors.js';
-import { boundingBox, haversineKm, isValidCoordinate, normaliseText } from '../utils/geo.js';
+import { boundingBox, haversineKm, isValidCoordinate, isWithinIndiaBounds, normaliseText } from '../utils/geo.js';
 import { discoverNearby, toListingCandidate } from './discoveryService.js';
 import { nominatimLookup } from './geocoding/providers.js';
+import { DEMO_LISTINGS_SEED } from '../data/demoListings.seed.js';
 
 const discoveredById = new Map();
+const demoById = new Map(DEMO_LISTINGS_SEED.map((item) => [item.externalId, item]));
 
 function rememberDiscovered(items) {
   items.forEach((item) => discoveredById.set(item.externalId, item));
@@ -18,6 +20,19 @@ function toPlain(document) {
   return value;
 }
 
+function withDistance(listing, center) {
+  return {
+    ...listing,
+    distanceKm: Number((haversineKm(center, listing.coordinates) ?? 0).toFixed(2)),
+  };
+}
+
+function demoListings(center, radiusKm) {
+  return DEMO_LISTINGS_SEED
+    .map((listing) => withDistance(listing, center))
+    .filter((listing) => listing.distanceKm <= radiusKm);
+}
+
 async function databaseListings(center, radiusKm) {
   if (!dbState.connected) return [];
   const [west, north, east, south] = boundingBox(center, radiusKm);
@@ -27,12 +42,8 @@ async function databaseListings(center, radiusKm) {
   }).lean();
   return documents
     .map(toPlain)
-    // Owner submissions stay private until moderation explicitly publishes them.
     .filter((listing) => listing.status !== 'pending' && listing.published !== false)
-    .map((listing) => ({
-      ...listing,
-      distanceKm: Number((haversineKm(center, listing.coordinates) ?? 0).toFixed(2)),
-    }))
+    .map((listing) => withDistance(listing, center))
     .filter((listing) => listing.distanceKm <= radiusKm);
 }
 
@@ -92,6 +103,17 @@ export async function searchListings(params = {}) {
       },
     };
   }
+  if (!isWithinIndiaBounds(lat, lng)) {
+    return {
+      items: [],
+      meta: {
+        reason: 'outside_india',
+        message: 'Nivasa currently supports locations within India only.',
+        total: 0,
+        returned: 0,
+      },
+    };
+  }
 
   if (
     (params.minRent !== undefined && !Number.isFinite(Number(params.minRent))) ||
@@ -119,6 +141,13 @@ export async function searchListings(params = {}) {
     items = discovery.items;
     discoveryErrors = discovery.errors;
     rememberDiscovered(items);
+    if (!items.length) {
+      // Demo fallback is explicit and never presented as verified/live inventory.
+      items = demoListings(center, radiusKm);
+      source = 'demo_seed';
+      attribution = 'Nivasa Demo Dataset (development/testing only)';
+      completeness = 'demo';
+    }
   }
 
   // Enforce radius for every source, not just the upstream discovery query.
@@ -129,6 +158,7 @@ export async function searchListings(params = {}) {
   const offset = Math.max(0, Number.parseInt(params.offset, 10) || 0);
   const limit = Math.min(Math.max(Number.parseInt(params.limit, 10) || 50, 1), 100);
 
+  const demoIncluded = filtered.some((item) => item.isDemo);
   return {
     items: filtered.slice(offset, offset + limit),
     meta: {
@@ -140,7 +170,10 @@ export async function searchListings(params = {}) {
       completeness,
       radiusKm,
       center,
-      note: 'Prices, availability and contact details are shown as "Not available" unless a source provided them.',
+      demoIncluded,
+      note: demoIncluded
+        ? 'DEMO DATA is included for development/testing where live rental inventory is unavailable. Demo listings are clearly labeled and are not verified properties.'
+        : 'Prices, availability and contact details are shown as "Not available" unless a source provided them.',
       upstreamErrors: discoveryErrors,
     },
   };
@@ -153,6 +186,8 @@ export async function getListing(id) {
   }
   const discovered = discoveredById.get(id);
   if (discovered) return discovered;
+  const demo = demoById.get(id);
+  if (demo) return demo;
 
   // A shared record URL must work even after a backend restart. Re-fetch the
   // genuine OSM object by id instead of inventing a placeholder record.

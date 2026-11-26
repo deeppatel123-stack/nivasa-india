@@ -3,6 +3,7 @@ import { BadgeCheck, CircleHelp } from 'lucide-react';
 const CONFIG = {
     verified: { tone: 'green', icon: BadgeCheck, label: 'Verified listing' },
     unverified: { tone: 'neutral', icon: CircleHelp, label: 'Unverified listing' },
+    demo: { tone: 'yellow', icon: CircleHelp, label: 'DEMO DATA' },
 };
 const FALLBACK = { tone: 'neutral', icon: CircleHelp, label: 'Verification not available' };
 export function VerificationBadge({ state }) {

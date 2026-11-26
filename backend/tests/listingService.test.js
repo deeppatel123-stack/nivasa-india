@@ -50,7 +50,7 @@ describe('listing search service', () => {
     expect(discoverNearby).not.toHaveBeenCalled();
   });
 
-  it('returns only genuine records within radius and never invents rent', async () => {
+  it('returns only records within radius and never invents rent on live records', async () => {
     discoverNearby.mockResolvedValue({
       items: [candidate(1, 18.52), candidate(2, 19.2)],
       errors: [],
@@ -60,6 +60,13 @@ describe('listing search service', () => {
     expect(result.items[0].prices.rent).toBeNull();
     expect(result.items[0].address.city).toBe('Pune');
     expect(result.meta.source).toBe('osm_nominatim');
+  });
+
+  it('rejects coordinates outside India', async () => {
+    const result = await searchListings({ lat: 51.5074, lng: -0.1278, radiusKm: 5 });
+    expect(result.items).toHaveLength(0);
+    expect(result.meta.reason).toBe('outside_india');
+    expect(discoverNearby).not.toHaveBeenCalled();
   });
 
   it('supports text search and rejects invalid rent ranges', async () => {

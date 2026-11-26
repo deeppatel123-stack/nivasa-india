@@ -69,7 +69,7 @@ export function PropertyDetailsPage() {
         if (!property || !allListings)
             return [];
         return allListings
-            .filter((item) => item.id !== property.id && !item.isDemo && item.verification !== 'demo')
+            .filter((item) => item.id !== property.id)
             .map((item) => ({
                 item,
                 rank: (item.category === property.category ? 4 : 0) +

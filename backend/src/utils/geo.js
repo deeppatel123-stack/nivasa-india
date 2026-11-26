@@ -25,6 +25,51 @@ export function isValidCoordinate(lat, lng) {
   return Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
 }
 
+// Broad India extent (including island territories) for validating ambiguous inputs.
+export const INDIA_BOUNDS = { minLat: 6.0, maxLat: 37.6, minLng: 68.0, maxLng: 97.6 };
+
+export function isWithinIndiaBounds(lat, lng) {
+  return isValidCoordinate(lat, lng) && lat >= INDIA_BOUNDS.minLat && lat <= INDIA_BOUNDS.maxLat && lng >= INDIA_BOUNDS.minLng && lng <= INDIA_BOUNDS.maxLng;
+}
+
+/**
+ * Central India validation. Every geocoder result must pass this before it is
+ * returned to the UI or used for nearby search. We do not accept a foreign
+ * location just because the place name matches an Indian query.
+ */
+export function validateIndiaLocation(place, { requireCoordinates = true } = {}) {
+  if (!place) return { ok: false, reason: 'missing' };
+  const lat = Number(place.coordinates?.lat ?? place.lat);
+  const lng = Number(place.coordinates?.lng ?? place.lng);
+  const hasCoordinates = Number.isFinite(lat) && Number.isFinite(lng);
+
+  if (requireCoordinates && !hasCoordinates) return { ok: false, reason: 'invalid_coordinates' };
+  if (hasCoordinates && !isValidCoordinate(lat, lng)) return { ok: false, reason: 'invalid_coordinates' };
+
+  const countryCode = String(place.countryCode || place.country_code || place.address?.country_code || '')
+    .trim()
+    .toLowerCase();
+  const country = String(place.country || place.address?.country || '').trim().toLowerCase();
+
+  if (countryCode && countryCode !== 'in') return { ok: false, reason: 'outside_india' };
+  if (country && country !== 'india' && country !== 'bharat') return { ok: false, reason: 'outside_india' };
+  if (!countryCode && !country) {
+    // No country metadata is ambiguous; only accept if coordinates are clearly inside India.
+    if (!hasCoordinates || !isWithinIndiaBounds(lat, lng)) return { ok: false, reason: 'ambiguous_country' };
+  }
+
+  if (hasCoordinates && !isWithinIndiaBounds(lat, lng)) {
+    return { ok: false, reason: 'outside_india_bounds' };
+  }
+
+  return {
+    ok: true,
+    countryCode: 'IN',
+    country: 'India',
+    coordinates: hasCoordinates ? { lat, lng } : null,
+  };
+}
+
 export function normaliseText(value) {
   return String(value ?? '')
     .toLowerCase()

@@ -28,10 +28,18 @@ export function useSearchUrlSync() {
     const lat = Number(latParam);
     const lng = Number(lngParam);
     if (Number.isFinite(lat) && Number.isFinite(lng) && latParam !== null && lngParam !== null) {
+      const inIndia = lat >= 6 && lat <= 37.6 && lng >= 68 && lng <= 97.6;
+      if (!inIndia) {
+        store.setResolvedLocation(null);
+        lastResolved.current = '';
+        return;
+      }
       store.setResolvedLocation({
         query,
         label: query || `${lat.toFixed(4)}, ${lng.toFixed(4)}`,
         coordinates: { lat, lng },
+        country: 'India',
+        countryCode: 'IN',
         source: latParam === 'gps' ? 'gps' : 'url',
       });
       lastResolved.current = `${lat},${lng}`;

@@ -64,8 +64,10 @@ export function SearchResultsPage() {
     content = (
       <EmptyState
         icon={Search}
-        title="No genuine accommodation records found"
-        description={`No matching OpenStreetMap accommodation places were found within ${radiusKm} km of ${query || 'this location'} with the current filters. Widen the radius, clear filters, or submit a genuine property record.`}
+        title={meta?.demoIncluded ? 'No live records found here' : 'No genuine accommodation records found'}
+        description={meta?.demoIncluded
+          ? `No live OSM accommodation records matched this search within ${radiusKm} km of ${query || 'this location'}. Clearly labeled DEMO DATA may appear for development/testing only; demo listings are not verified properties.`
+          : `No matching OpenStreetMap accommodation places were found within ${radiusKm} km of ${query || 'this location'} with the current filters. Widen the radius, clear filters, or submit a genuine property record.`}
         action={<Button onClick={resetFilters}>Clear all filters</Button>}
         secondary={<Link to="/owner/add-property" className={buttonClasses('outline', 'md')}>Submit a property</Link>}
       />
@@ -83,8 +85,8 @@ export function SearchResultsPage() {
       eyebrow={hasQuery ? 'Location search' : 'Browse stays'}
       title={hasQuery ? `Stays near ${query}` : 'Explore stays across India'}
       description={hasQuery
-        ? `Genuine accommodation records within ${radiusKm} km of the resolved location. Missing prices, availability and contacts are shown as “Not available”.`
-        : 'Enter any Indian location to discover genuine, attributed accommodation records nearby.'}
+        ? `Accommodation records within ${radiusKm} km of the resolved Indian location. Live records show source attribution; any DEMO DATA is clearly labeled and never shown as verified.`
+        : 'Enter any Indian location to discover accommodation records nearby. Live data is attributed; demo data is clearly labeled.'}
       breadcrumbs={[{ label: pathname === '/search' ? 'Search' : 'Explore' }]}
       actions={<LinkButton to={mapHref} variant="outline" size="sm"><MapIcon className="h-4 w-4" aria-hidden />Map view</LinkButton>}
     >
