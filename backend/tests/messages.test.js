@@ -37,9 +37,9 @@ const submissionBody = () => ({
   consent: true,
 });
 
-async function register(name) {
+async function register(name, role = 'student') {
   const address = email();
-  const response = await request(app).post('/api/auth/register').send({ name, email: address, password: 'password-1234', role: 'seeker' });
+  const response = await request(app).post('/api/auth/register').send({ name, email: address, password: 'password-1234', role });
   expect(response.status).toBe(201);
   return { token: response.body.token, user: response.body.user, email: address };
 }
@@ -100,7 +100,7 @@ describe('enquiry API', () => {
   });
 
   it('lets an owner see enquiries for their submitted listing', async () => {
-    const owner = await register('Listing Owner');
+    const owner = await register('Listing Owner', 'owner');
     const submission = await request(app)
       .post('/api/submissions')
       .set('Authorization', `Bearer ${owner.token}`)

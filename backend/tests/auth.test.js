@@ -17,11 +17,11 @@ describe('account API', () => {
       name: 'Asha Rao',
       email: email(),
       password: 'correct-horse-battery',
-      role: 'seeker',
+      role: 'student',
     });
 
     expect(response.status).toBe(201);
-    expect(response.body.user).toMatchObject({ name: 'Asha Rao', role: 'seeker' });
+    expect(response.body.user).toMatchObject({ name: 'Asha Rao', role: 'student' });
     expect(response.body.user.id).toBeTruthy();
     expect(response.body.user.email).toMatch(/^account-/);
     expect(response.body.user).not.toHaveProperty('passwordHash');
@@ -42,7 +42,7 @@ describe('account API', () => {
 
   it('logs in only with the correct password', async () => {
     const address = email();
-    await request(app).post('/api/auth/register').send({ name: 'Meera Iyer', email: address, password: 'first-password-1', role: 'seeker' });
+    await request(app).post('/api/auth/register').send({ name: 'Meera Iyer', email: address, password: 'first-password-1', role: 'student' });
 
     const good = await request(app).post('/api/auth/login').send({ email: address.toUpperCase(), password: 'first-password-1' });
     expect(good.status).toBe(200);
@@ -60,7 +60,7 @@ describe('account API', () => {
       name: 'Noah Shah',
       email: email(),
       password: 'another-password',
-      role: 'seeker',
+      role: 'professional',
     });
     const token = registered.body.token;
 

@@ -1,4 +1,4 @@
-import { unauthorized } from '../utils/errors.js';
+import { forbidden, unauthorized } from '../utils/errors.js';
 import { getUserById, toPublicUser, verifyToken } from '../services/authService.js';
 
 function bearerToken(req) {
@@ -37,4 +37,16 @@ export function optionalAuth(req, _res, next) {
     }
   }
   return next();
+}
+
+/** Requires an authenticated user with one of the allowed roles. */
+export function requireRole(...roles) {
+  const allowed = new Set(roles.flat().filter(Boolean));
+  return (req, _res, next) => {
+    if (!req.user) return next(unauthorized('A Bearer token is required.'));
+    if (allowed.size > 0 && !allowed.has(req.user.role)) {
+      return next(forbidden('You do not have permission to access this resource.'));
+    }
+    return next();
+  };
 }

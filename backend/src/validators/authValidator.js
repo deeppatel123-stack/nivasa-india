@@ -1,12 +1,20 @@
 import { badRequest } from '../utils/errors.js';
 import { emailField, loginPasswordField, nameField, passwordField } from './fields.js';
 
-const ROLES = new Set(['seeker', 'owner']);
+export const ROLES = ['student', 'professional', 'owner', 'admin'];
+const ROLE_SET = new Set(ROLES);
+const LEGACY_ROLE_MAP = { seeker: 'student', landlord: 'owner' };
+
+export function normalizeRole(value) {
+  const role = typeof value === 'string' ? value.trim().toLowerCase() : '';
+  const normalized = LEGACY_ROLE_MAP[role] || role;
+  return ROLE_SET.has(normalized) ? normalized : null;
+}
 
 export function validateRegister(body = {}) {
-  const role = typeof body.role === 'string' ? body.role.trim().toLowerCase() : '';
-  if (!ROLES.has(role)) {
-    throw badRequest('Choose whether you are looking for a place or listing a property.');
+  const role = normalizeRole(body.role);
+  if (!role || role === 'admin') {
+    throw badRequest('Choose a valid account type: student, working professional, or property owner.');
   }
   return {
     name: nameField(body.name),

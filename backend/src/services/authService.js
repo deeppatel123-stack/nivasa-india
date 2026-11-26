@@ -75,6 +75,19 @@ export function withTokenNotice(response) {
 
 const encode = (value) => Buffer.from(JSON.stringify(value)).toString('base64url');
 
+const ROLE_MAP = {
+  student: 'student',
+  professional: 'professional',
+  owner: 'owner',
+  admin: 'admin',
+  seeker: 'student',
+  landlord: 'owner',
+};
+
+export function normalizeUserRole(role) {
+  return ROLE_MAP[String(role || '').trim().toLowerCase()] || 'student';
+}
+
 export function issueToken(user) {
   const now = Math.floor(Date.now() / 1000);
   const header = encode({ alg: 'HS256', typ: 'JWT' });
@@ -82,7 +95,7 @@ export function issueToken(user) {
     sub: user.id,
     email: user.email,
     name: user.name,
-    role: user.role === 'owner' ? 'owner' : 'seeker',
+    role: normalizeUserRole(user.role),
     iat: now,
     exp: now + TOKEN_TTL_SECONDS,
   });
@@ -116,8 +129,13 @@ export function verifyToken(token) {
 }
 
 export function toPublicUser(user) {
-  const role = user.role === 'owner' ? 'owner' : 'seeker';
-  return { id: user.id, name: user.name, email: user.email, role };
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: normalizeUserRole(user.role),
+    createdAt: user.createdAt || null,
+  };
 }
 
 export function findUserByEmail(email) {
@@ -146,7 +164,7 @@ export async function registerAccount({ name, email, password, role }) {
     name,
     email,
     passwordHash: await hashPassword(password),
-    role: role === 'owner' ? 'owner' : 'seeker',
+    role: normalizeUserRole(role),
     createdAt: new Date().toISOString(),
   };
   writeCollection(USERS, user);
