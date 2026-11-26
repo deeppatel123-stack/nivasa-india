@@ -3,6 +3,19 @@ import { create } from 'zustand';
 import { authService } from '@/features/auth/authService';
 import { authToken } from '@/services/authToken';
 
+export const ROLES = ['guest', 'student', 'professional', 'owner', 'admin'];
+const ROLE_MAP = { seeker: 'student', landlord: 'owner' };
+
+export function normalizeRole(role) {
+  const value = ROLE_MAP[String(role || '').trim().toLowerCase()] || String(role || '').trim().toLowerCase();
+  return ROLES.includes(value) ? value : 'guest';
+}
+
+export function isSeekerRole(role) {
+  const normalized = normalizeRole(role);
+  return normalized === 'student' || normalized === 'professional';
+}
+
 const cached = authService.getCachedSession();
 let verificationInFlight = null;
 
@@ -11,7 +24,7 @@ function errorMessage(error) {
 }
 
 export const useAuthStore = create((set) => ({
-  user: cached?.user ?? null,
+  user: cached?.user ? { ...cached.user, role: normalizeRole(cached.user.role) } : null,
   status: 'idle',
   verified: false,
   error: null,
@@ -36,7 +49,7 @@ export const useAuthStore = create((set) => ({
       try {
         const result = await authService.fetchSession();
         set({
-          user: result.user,
+          user: result.user ? { ...result.user, role: normalizeRole(result.user.role) } : null,
           status: 'authenticated',
           verified: true,
           error: null,
@@ -67,7 +80,7 @@ export const useAuthStore = create((set) => ({
     const result = await authService.signIn(email, password);
     if (result.ok) {
       set({
-        user: result.user,
+        user: result.user ? { ...result.user, role: normalizeRole(result.user.role) } : null,
         status: 'authenticated',
         verified: true,
         error: null,
@@ -80,7 +93,7 @@ export const useAuthStore = create((set) => ({
     const result = await authService.signUp(name, email, password, role);
     if (result.ok) {
       set({
-        user: result.user,
+        user: result.user ? { ...result.user, role: normalizeRole(result.user.role) } : null,
         status: 'authenticated',
         verified: true,
         error: null,
