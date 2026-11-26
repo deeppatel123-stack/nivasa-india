@@ -5,10 +5,30 @@ import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useSavedStore } from '@/store/useSavedStore';
-const NAV_LINKS = [
-    { to: '/explore', label: 'Explore' },
-    { to: '/map', label: 'Map' },
-    { to: '/compare', label: 'Compare' },
+const PUBLIC_LINKS = [
+  { to: '/search', label: 'Find stays' },
+  { to: '/map', label: 'Map' },
+  { to: '/compare', label: 'Compare' },
+];
+
+const SEEKER_LINKS = [
+  { to: '/dashboard', label: 'Dashboard' },
+  { to: '/search', label: 'Find stays' },
+  { to: '/compare', label: 'Compare' },
+  { to: '/assistant', label: 'Assistant' },
+  { to: '/wishlist', label: 'Saved' },
+];
+
+const OWNER_LINKS = [
+  { to: '/owner/dashboard', label: 'Dashboard' },
+  { to: '/owner/add-property', label: 'Add property' },
+  { to: '/owner/listings', label: 'My listings' },
+];
+
+const ADMIN_LINKS = [
+  { to: '/admin', label: 'Admin' },
+  { to: '/owner/listings', label: 'Submissions' },
+  { to: '/search', label: 'Search' },
 ];
 export function Logo({ light = false }) {
     return (<Link to="/" className="group inline-flex items-center gap-2.5" aria-label="Nivasa home">
@@ -35,17 +55,19 @@ export function Navbar() {
         setMenuOpen(false);
         setAccountOpen(false);
     }, [pathname]);
+    const navLinks = !user ? PUBLIC_LINKS : user.role === 'owner' ? OWNER_LINKS : user.role === 'admin' ? ADMIN_LINKS : SEEKER_LINKS;
+    const accountTarget = !user ? '/login' : user.role === 'owner' ? '/owner/dashboard' : user.role === 'admin' ? '/admin' : '/dashboard';
     return (<header className="sticky top-0 z-[800] border-b border-ink-100 bg-white/90 backdrop-blur-xl">
       <div className="shell flex h-16 items-center justify-between gap-4">
         <Logo />
 
         <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary navigation">
-          {NAV_LINKS.map((link) => (<NavLink key={link.to} to={link.to} className={({ isActive }) => cn('rounded-lg px-3 py-2 text-sm font-semibold transition', isActive ? 'bg-ink-50 text-ink-950' : 'text-ink-500 hover:bg-ink-50 hover:text-ink-900')}>
+          {navLinks.map((link) => (<NavLink key={link.to} to={link.to} className={({ isActive }) => cn('rounded-lg px-3 py-2 text-sm font-semibold transition', isActive ? 'bg-ink-50 text-ink-950' : 'text-ink-500 hover:bg-ink-50 hover:text-ink-900')}>
               {link.label}
             </NavLink>))}
-          <NavLink to="/owner/dashboard" className={({ isActive }) => cn('rounded-lg px-3 py-2 text-sm font-semibold transition', isActive ? 'bg-ink-50 text-ink-950' : 'text-ink-500 hover:bg-ink-50 hover:text-ink-900')}>
-            For owners
-          </NavLink>
+          {!user && (<NavLink to="/register" className={({ isActive }) => cn('rounded-lg px-3 py-2 text-sm font-semibold transition', isActive ? 'bg-ink-50 text-ink-950' : 'text-ink-500 hover:bg-ink-50 hover:text-ink-900')}>
+            List property
+          </NavLink>)}
         </nav>
 
         <div className="flex items-center gap-1.5">
@@ -61,15 +83,18 @@ export function Navbar() {
                 <span className="grid h-6 w-6 place-items-center rounded-full bg-teal-100 text-teal-800">
                   <UserRound className="h-3.5 w-3.5"/>
                 </span>
-                <span className="max-w-[90px] truncate">{user.name}</span>
+                <span className="max-w-[110px] truncate">{user.name}</span>
                 <ChevronDown className="h-3.5 w-3.5 text-ink-400"/>
               </button>
               {accountOpen && (<div className="absolute right-0 top-[calc(100%+8px)] z-50 w-48 rounded-xl border border-ink-100 bg-white p-1.5 shadow-lift">
+                  <Link to={accountTarget} className="block rounded-lg px-3 py-2 text-sm text-ink-700 hover:bg-ink-50">
+                    Dashboard
+                  </Link>
                   <Link to="/profile" className="block rounded-lg px-3 py-2 text-sm text-ink-700 hover:bg-ink-50">
                     My profile
                   </Link>
                   <Link to="/wishlist" className="block rounded-lg px-3 py-2 text-sm text-ink-700 hover:bg-ink-50">
-                    Shortlist
+                    Saved places
                   </Link>
                   <button type="button" onClick={() => {
                     signOut();
@@ -95,7 +120,7 @@ export function Navbar() {
 
       {menuOpen && (<nav className="border-t border-ink-100 bg-white px-4 py-3 lg:hidden" aria-label="Mobile navigation">
           <div className="mx-auto grid max-w-[1240px] gap-1">
-            {[...NAV_LINKS, { to: '/owner/dashboard', label: 'Owner dashboard' }, { to: '/wishlist', label: 'Saved stays' }].map((link) => (<NavLink key={link.to + link.label} to={link.to} className={({ isActive }) => cn('rounded-lg px-3 py-2.5 text-sm font-semibold', isActive ? 'bg-ink-50 text-ink-950' : 'text-ink-600')}>
+            {[...navLinks, { to: '/wishlist', label: 'Saved places' }, { to: '/profile', label: 'Profile' }].map((link) => (<NavLink key={link.to + link.label} to={link.to} className={({ isActive }) => cn('rounded-lg px-3 py-2.5 text-sm font-semibold', isActive ? 'bg-ink-50 text-ink-950' : 'text-ink-600')}>
                 {link.label}
               </NavLink>))}
             <div className="mt-2 flex gap-2 border-t border-ink-100 pt-3">
