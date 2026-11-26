@@ -64,10 +64,10 @@ export function SearchResultsPage() {
     content = (
       <EmptyState
         icon={Search}
-        title="No places found"
-        description={`No places matched your search within ${radiusKm} km${hasQuery ? ` of ${query}` : ''}. Try widening the radius, clearing filters, or searching a different location.`}
-        action={<Button onClick={resetFilters}>Clear filters</Button>}
-        secondary={<Link to="/owner/add-property" className={buttonClasses('outline', 'md')}>List a property</Link>}
+        title="No places found in this area"
+        description={`We couldn't find matching places within ${radiusKm} km${hasQuery ? ` of ${query}` : ''}. Try increasing the radius, clearing filters, or searching a nearby locality or landmark. If listings are limited in this area, you may still see demo or incomplete records where clearly labeled.`}
+        action={<Button onClick={() => useSearchStore.getState().setRadius(Math.min(20, Math.max(radiusKm, 10)))}>Try wider radius</Button>}
+        secondary={<Button variant="outline" onClick={resetFilters}>Clear filters</Button>}
       />
     );
   } else {

@@ -19,6 +19,9 @@ function initials(name) {
 
 const ROLE_LABELS = {
   owner: 'Property owner',
+  student: 'Student',
+  professional: 'Working professional',
+  admin: 'Administrator',
   seeker: 'Looking for a place',
 };
 

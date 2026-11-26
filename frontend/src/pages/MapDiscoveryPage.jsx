@@ -113,9 +113,9 @@ export function MapDiscoveryPage() {
       <EmptyState
         icon={MapPin}
         title="No places found nearby"
-        description="Try a larger radius, clear filters, or search a different location."
+        description="Try a larger radius, clear filters, or search a nearby locality. Some areas may have limited listing data; any demo records will be clearly labeled."
         action={<Button onClick={() => useSearchStore.getState().setRadius(20)}>Expand to 20 km</Button>}
-        secondary={<Link to="/owner/add-property" className={buttonClasses('outline', 'md')}>List a property</Link>}
+        secondary={<Button variant="outline" onClick={resetFilters}>Clear filters</Button>}
       />
     );
   } else {
