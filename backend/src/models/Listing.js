@@ -69,7 +69,13 @@ const listingSchema = new Schema(
     provider: {
       type: String,
       required: true,
-      enum: ['osm_nominatim', 'google_places', 'owner_submission', 'authorized_import', 'demo_seed'],
+      enum: ['osm_nominatim', 'google_places', 'google_geocode', 'owner_submission', 'authorized_import', 'demo_seed'],
+    },
+    recordType: {
+      type: String,
+      enum: ['rental_listing', 'accommodation_business', 'demo_listing'],
+      default: 'accommodation_business',
+      index: true,
     },
     title: { type: String, required: true },
     slug: { type: String, required: true, index: true },
@@ -77,6 +83,17 @@ const listingSchema = new Schema(
     description: { type: String, default: '' },
     address: { type: addressSchema, required: true },
     coordinates: { type: coordinatesSchema, required: true },
+    location: {
+      type: {
+        type: String,
+        enum: ['Point'],
+        default: 'Point',
+      },
+      coordinates: {
+        type: [Number], // [lng, lat]
+        default: undefined,
+      },
+    },
     prices: { type: priceSchema, required: true },
     occupancy: { type: String, default: null },
     amenities: { type: [String], default: [] },
@@ -106,5 +123,15 @@ const listingSchema = new Schema(
 );
 
 listingSchema.index({ 'address.city': 1, category: 1 });
+listingSchema.index({ location: '2dsphere' });
+
+listingSchema.pre('validate', function syncGeo(next) {
+  const lat = this.coordinates?.lat;
+  const lng = this.coordinates?.lng;
+  if (Number.isFinite(lat) && Number.isFinite(lng)) {
+    this.location = { type: 'Point', coordinates: [lng, lat] };
+  }
+  next();
+});
 
 export const Listing = mongoose.model('Listing', listingSchema);

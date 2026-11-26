@@ -29,10 +29,12 @@ export const env = {
     .split(',')
     .map((origin) => origin.trim())
     .filter(Boolean),
-  geocoderProvider: process.env.GEOCODER_PROVIDER || 'photon',
+  geocoderProvider: process.env.GEOCODER_PROVIDER || 'auto',
   photonUrl: (process.env.PHOTON_URL || 'https://photon.komoot.io').replace(/\/$/, ''),
   nominatimUrl: (process.env.NOMINATIM_URL || 'https://nominatim.openstreetmap.org').replace(/\/$/, ''),
-  googleMapsKey: (process.env.GOOGLE_MAPS_API_KEY || '').trim(),
+  googleMapsKey: (process.env.GOOGLE_MAPS_API_KEY || process.env.GOOGLE_PLACES_API_KEY || '').trim(),
+  googlePlacesBaseUrl: (process.env.GOOGLE_PLACES_BASE_URL || 'https://places.googleapis.com/v1').replace(/\/$/, ''),
+  googleGeocodeBaseUrl: (process.env.GOOGLE_GEOCODE_BASE_URL || 'https://maps.googleapis.com/maps/api/geocode').replace(/\/$/, ''),
   geocoderUserAgent:
     process.env.GEOCODER_USER_AGENT ||
     'Nivasa/1.0 (Indian rental discovery; contact: admin@nivasa.in)',
@@ -40,7 +42,7 @@ export const env = {
   discoveryCacheTtlMs: positiveInt(process.env.DISCOVERY_CACHE_TTL_MS, 15 * 60 * 1000),
   // OSMF Nominatim policy: absolute maximum 1 request/second. Stay below it.
   geocodeMinIntervalMs: positiveInt(process.env.GEOCODE_MIN_INTERVAL_MS, 1200),
-  discoveryQueries: (process.env.DISCOVERY_QUERIES || 'hostel,guest house,student accommodation,pg accommodation')
+  discoveryQueries: (process.env.DISCOVERY_QUERIES || 'hostel,pg,guest house,student accommodation,co-living')
     .split(',')
     .map((term) => term.trim())
     .filter(Boolean),

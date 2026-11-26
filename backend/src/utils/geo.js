@@ -76,3 +76,13 @@ export function normaliseText(value) {
     .replace(/[^a-z0-9]+/g, ' ')
     .trim();
 }
+
+export function toGeoJsonPoint(lat, lng) {
+  return { type: 'Point', coordinates: [lng, lat] };
+}
+
+export function fromGeoJsonPoint(point) {
+  if (!point || point.type !== 'Point' || !Array.isArray(point.coordinates)) return null;
+  const [lng, lat] = point.coordinates;
+  return isValidCoordinate(lat, lng) ? { lat, lng } : null;
+}

@@ -3,16 +3,21 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('../src/config/db.js', () => ({ dbState: { connected: false, configured: false } }));
 vi.mock('../src/models/Listing.js', () => ({ Listing: {} }));
 
-const discoverNearby = vi.fn();
-const toListingCandidate = vi.fn();
+const discoverAccommodation = vi.fn();
+const toBusinessCandidate = vi.fn((item) => ({ ...item, recordType: 'accommodation_business' }));
 const nominatimLookup = vi.fn();
 
 vi.mock('../src/services/discoveryService.js', () => ({
-  discoverNearby: (...args) => discoverNearby(...args),
-  toListingCandidate: (...args) => toListingCandidate(...args),
+  discoverAccommodation: (...args) => discoverAccommodation(...args),
+  discoverNearby: (...args) => discoverAccommodation(...args),
+  toBusinessCandidate: (...args) => toBusinessCandidate(...args),
+  toListingCandidate: (...args) => toBusinessCandidate(...args),
 }));
 vi.mock('../src/services/geocoding/providers.js', () => ({
   nominatimLookup: (...args) => nominatimLookup(...args),
+}));
+vi.mock('../src/services/geocoding/googlePlaces.js', () => ({
+  googleStatus: () => ({ configured: false, keyEnv: 'GOOGLE_MAPS_API_KEY' }),
 }));
 
 const { searchListings, getListing } = await import('../src/services/listingService.js');
@@ -38,8 +43,8 @@ const candidate = (id, lat, rent = null) => ({
 
 describe('listing search service', () => {
   beforeEach(() => {
-    discoverNearby.mockReset();
-    toListingCandidate.mockReset();
+    discoverAccommodation.mockReset();
+    toBusinessCandidate.mockClear();
     nominatimLookup.mockReset();
   });
 
@@ -47,30 +52,33 @@ describe('listing search service', () => {
     const result = await searchListings({});
     expect(result.items).toHaveLength(0);
     expect(result.meta.reason).toBe('location_required');
-    expect(discoverNearby).not.toHaveBeenCalled();
+    expect(discoverAccommodation).not.toHaveBeenCalled();
   });
 
   it('returns only records within radius and never invents rent on live records', async () => {
-    discoverNearby.mockResolvedValue({
+    discoverAccommodation.mockResolvedValue({
       items: [candidate(1, 18.52), candidate(2, 19.2)],
-      errors: [],
+      diagnostics: { providers: [{ provider: 'osm_nominatim', status: 'ok', rawCount: 2, validCount: 2 }], rawResultCount: 2, validResultCount: 2 },
     });
     const result = await searchListings({ lat: 18.52, lng: 73.86, radiusKm: 5 });
     expect(result.items).toHaveLength(1);
     expect(result.items[0].prices.rent).toBeNull();
-    expect(result.items[0].address.city).toBe('Pune');
-    expect(result.meta.source).toBe('osm_nominatim');
+    expect(result.items[0].recordType).toBe('accommodation_business');
+    expect(result.meta.counts.accommodationBusinesses).toBe(1);
   });
 
   it('rejects coordinates outside India', async () => {
     const result = await searchListings({ lat: 51.5074, lng: -0.1278, radiusKm: 5 });
     expect(result.items).toHaveLength(0);
     expect(result.meta.reason).toBe('outside_india');
-    expect(discoverNearby).not.toHaveBeenCalled();
+    expect(discoverAccommodation).not.toHaveBeenCalled();
   });
 
   it('supports text search and rejects invalid rent ranges', async () => {
-    discoverNearby.mockResolvedValue({ items: [candidate(1, 18.52), candidate(2, 18.521)], errors: [] });
+    discoverAccommodation.mockResolvedValue({
+      items: [candidate(1, 18.52), candidate(2, 18.521)],
+      diagnostics: { providers: [{ provider: 'osm_nominatim', status: 'ok', rawCount: 2, validCount: 2 }], rawResultCount: 2, validResultCount: 2 },
+    });
     const filtered = await searchListings({ lat: 18.52, lng: 73.86, q: 'accommodation 2' });
     expect(filtered.items).toHaveLength(1);
     expect(filtered.items[0].title).toBe('Accommodation 2');
@@ -79,11 +87,22 @@ describe('listing search service', () => {
 
   it('re-fetches a genuine OSM record by id when the in-memory cache is cold', async () => {
     nominatimLookup.mockResolvedValue([{ id: 'osm:way:42', name: 'Genuine Hostel' }]);
-    toListingCandidate.mockReturnValue(candidate(42, 18.52));
+    toBusinessCandidate.mockReturnValue(candidate(42, 18.52));
 
     const record = await getListing('osm:way:42');
 
     expect(nominatimLookup).toHaveBeenCalledWith(['W42']);
     expect(record.externalId).toBe('osm:way:42');
+    expect(record.recordType).toBe('accommodation_business');
+  });
+
+  it('reports diagnostics when providers are unavailable', async () => {
+    discoverAccommodation.mockResolvedValue({
+      items: [],
+      diagnostics: { providers: [{ provider: 'osm_nominatim', status: 'error', error: 'timeout', rawCount: 0, validCount: 0 }], rawResultCount: 0, validResultCount: 0 },
+    });
+    const result = await searchListings({ lat: 18.52, lng: 73.86, radiusKm: 5 });
+    expect(result.meta.reason).toBe('providers_unavailable');
+    expect(result.meta.diagnostics.providers.some((p) => p.provider === 'osm_nominatim')).toBe(true);
   });
 });
