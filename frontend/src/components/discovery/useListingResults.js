@@ -37,10 +37,12 @@ export function useListingResults() {
     [listings, query, radiusKm, filters, sort, origin?.lat, origin?.lng],
   );
 
+  const demoCount = results.filter((item) => item.property.isDemo).length;
+
   return {
     listings,
     results,
-    meta: data?.meta || null,
+    meta: data?.meta ? { ...data.meta, demoCount } : (demoCount ? { demoCount } : null),
     isLoading,
     isError,
     error,

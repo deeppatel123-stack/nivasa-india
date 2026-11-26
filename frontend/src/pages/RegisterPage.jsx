@@ -15,15 +15,21 @@ const AUTH_ROUTES = ['/login', '/register', '/forgot-password'];
 
 const ROLE_OPTIONS = [
   {
-    value: 'seeker',
-    label: 'I am looking for a place',
-    description: 'Search, save, compare, and contact property owners.',
+    value: 'student',
+    label: 'Student',
+    description: 'Find PGs, hostels, or rooms near college or campus.',
     icon: Search,
   },
   {
+    value: 'professional',
+    label: 'Working professional',
+    description: 'Search rentals near office, commute routes, or city hubs.',
+    icon: UserRound,
+  },
+  {
     value: 'owner',
-    label: 'I want to list a property',
-    description: 'Submit and manage your property listings.',
+    label: 'Property owner',
+    description: 'List and manage your property details and enquiries.',
     icon: Building2,
   },
 ];
@@ -64,7 +70,7 @@ export function RegisterPage() {
   const [submitting, setSubmitting] = useState(false);
 
   const requestedFrom = safeRedirect(location.state?.from);
-  const defaultDestination = role === 'owner' ? '/owner/dashboard' : '/';
+  const defaultDestination = role === 'owner' ? '/owner/dashboard' : '/dashboard';
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -113,8 +119,8 @@ export function RegisterPage() {
         )}
 
         <fieldset>
-          <legend className="field-label mb-2">I want to...</legend>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <legend className="field-label mb-2">Account type</legend>
+          <div className="grid gap-3 sm:grid-cols-3">
             {ROLE_OPTIONS.map((option) => {
               const Icon = option.icon;
               const selected = role === option.value;

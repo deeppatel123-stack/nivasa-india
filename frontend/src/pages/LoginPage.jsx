@@ -38,9 +38,14 @@ export function LoginPage() {
   const [formMessage, setFormMessage] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
+  function defaultDestinationForRole(role) {
+    if (role === 'owner') return '/owner/dashboard';
+    if (role === 'admin') return '/admin';
+    return '/dashboard';
+  }
+
   const requestedFrom = safeRedirect(location.state?.from);
   const queryFrom = safeRedirect(new URLSearchParams(location.search).get('redirect'));
-  const redirectTo = requestedFrom ?? queryFrom ?? '/profile';
   const registerTo = requestedFrom ? { pathname: '/register', state: { from: requestedFrom } } : '/register';
   const resetTo = requestedFrom ? { pathname: '/forgot-password', state: { from: requestedFrom } } : '/forgot-password';
 
@@ -58,7 +63,8 @@ export function LoginPage() {
       const result = await signIn(email.trim(), password);
       if (result.ok) {
         pushToast('Signed in successfully.', 'success');
-        navigate(redirectTo, { replace: true });
+        const role = result.user?.role;
+        navigate(requestedFrom ?? queryFrom ?? defaultDestinationForRole(role), { replace: true });
       } else {
         setFormMessage(result.message || 'Could not sign in. Please try again.');
         pushToast(result.message || 'Could not sign in.', 'warning');

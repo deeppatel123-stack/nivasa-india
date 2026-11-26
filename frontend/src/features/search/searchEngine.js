@@ -45,7 +45,8 @@ function sortResults(results, sort) {
 export function searchListings(listings, state, origin) {
   const results = [];
   for (const property of listings) {
-    if (property.isDemo) continue;
+    // Demo records are allowed only when clearly labeled in UI. Keep them visible
+    // so development fallback does not look like a false "no results" state.
     if (!matchesFilters(property, state)) continue;
     let distanceKm = property.distanceKm ?? null;
     if (!origin || !property.location?.coordinates) {

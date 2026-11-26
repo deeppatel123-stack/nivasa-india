@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { RequireAuth, RequireRole } from '@/components/auth/RouteGuard';
 import { CompareTray } from '@/components/compare/CompareTray';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { Footer } from '@/components/layout/Footer';
@@ -26,6 +27,8 @@ import { RegisterPage } from '@/pages/RegisterPage';
 import { SearchResultsPage } from '@/pages/SearchResultsPage';
 import { TermsPage } from '@/pages/TermsPage';
 import { WishlistPage } from '@/pages/WishlistPage';
+import { SeekerDashboardPage } from '@/pages/SeekerDashboardPage';
+import { AdminDashboardPage } from '@/pages/AdminDashboardPage';
 function ScrollToTop() {
     const { pathname } = useLocation();
     useEffect(() => {
@@ -50,12 +53,14 @@ export default function App() {
             <Route path="/login" element={<LoginPage />}/>
             <Route path="/register" element={<RegisterPage />}/>
             <Route path="/forgot-password" element={<ForgotPasswordPage />}/>
-            <Route path="/profile" element={<ProfilePage />}/>
+            <Route path="/dashboard" element={<RequireRole roles={['student', 'professional']}><SeekerDashboardPage /></RequireRole>}/>
+            <Route path="/admin" element={<RequireRole roles={['admin']}><AdminDashboardPage /></RequireRole>}/>
+            <Route path="/profile" element={<RequireAuth><ProfilePage /></RequireAuth>}/>
             <Route path="/wishlist" element={<WishlistPage />}/>
             <Route path="/recently-viewed" element={<RecentlyViewedPage />}/>
-            <Route path="/owner/dashboard" element={<OwnerDashboardPage />}/>
-            <Route path="/owner/add-property" element={<AddPropertyPage />}/>
-            <Route path="/owner/listings" element={<ManageListingsPage />}/>
+            <Route path="/owner/dashboard" element={<RequireRole roles={['owner', 'admin']}><OwnerDashboardPage /></RequireRole>}/>
+            <Route path="/owner/add-property" element={<RequireRole roles={['owner', 'admin']}><AddPropertyPage /></RequireRole>}/>
+            <Route path="/owner/listings" element={<RequireRole roles={['owner', 'admin']}><ManageListingsPage /></RequireRole>}/>
             <Route path="/contact" element={<ContactPage />}/>
             <Route path="/about" element={<AboutPage />}/>
             <Route path="/faq" element={<FAQPage />}/>
