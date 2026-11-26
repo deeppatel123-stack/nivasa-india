@@ -1,98 +1,66 @@
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Check } from 'lucide-react';
 import { Logo } from '@/components/layout/Navbar';
-import { Badge } from '@/components/ui/Badge';
 
 const HIGHLIGHTS = [
-  'Search genuine OpenStreetMap accommodation records',
-  'Compare up to four records side by side',
-  'Keep a shortlist with source attribution',
+  'Search real places across Indian cities and localities',
+  'Save and compare options in one place',
+  'Clear details with honest availability information',
 ];
 
-/** Split-screen shell shared by the account pages. */
 export function AuthLayout({ eyebrow, title, description, children, footer, backTo, backLabel }) {
-  return (<div className="bg-canvas">
-    <div className="shell grid min-h-[calc(100vh-4rem)] items-stretch gap-8 py-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-12 lg:py-10">
-      <section aria-label="About Nivasa" className="relative hidden overflow-hidden rounded-3xl bg-ink-950 p-10 text-white shadow-lift lg:flex lg:flex-col lg:justify-between">
-        <div className="grid-fade pointer-events-none absolute inset-0 opacity-50" aria-hidden/>
-        <div className="pointer-events-none absolute -right-24 -top-32 h-80 w-80 rounded-full bg-teal-500/20 blur-3xl" aria-hidden/>
-        <div className="pointer-events-none absolute -bottom-32 -left-24 h-72 w-72 rounded-full bg-saffron-500/10 blur-3xl" aria-hidden/>
-
-        <div className="relative flex items-center justify-between gap-3">
-          <Logo light/>
-          <Badge tone="teal">Account access</Badge>
-        </div>
-
-        <div className="relative max-w-lg py-10">
-          <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-teal-300">Find your fit</p>
-          <h2 className="font-display text-4xl font-extrabold leading-[1.12] tracking-tight text-white sm:text-[42px]">
-            A calmer way to shortlist your next stay.
-          </h2>
-          <p className="mt-5 max-w-md text-sm leading-relaxed text-white/65">
-            Search accommodation records near the place you need to be, with source attribution and gaps shown as
-            “Not available” instead of filled with guesses.
+  return (
+    <div className="bg-canvas">
+      <div className="shell grid min-h-[calc(100vh-4rem)] items-stretch gap-8 py-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-12 lg:py-10">
+        <section
+          aria-label="About Nivasa"
+          className="relative hidden overflow-hidden rounded-3xl bg-ink-950 p-10 text-white shadow-lift lg:flex lg:flex-col lg:justify-between"
+        >
+          <div className="grid-fade pointer-events-none absolute inset-0 opacity-50" aria-hidden />
+          <div className="pointer-events-none absolute -right-24 -top-32 h-80 w-80 rounded-full bg-teal-500/20 blur-3xl" aria-hidden />
+          <div>
+            <Logo light />
+            <p className="mt-10 max-w-md font-display text-3xl font-extrabold leading-snug tracking-tight text-balance">
+              Find your next place with confidence.
+            </p>
+            <p className="mt-4 max-w-md text-sm leading-relaxed text-white/70">
+              Nivasa helps you explore stays near the places that matter to you, with clear information and simple tools.
+            </p>
+            <ul className="mt-8 space-y-3.5">
+              {HIGHLIGHTS.map((item) => (
+                <li key={item} className="flex items-start gap-3 text-sm leading-relaxed text-white/85">
+                  <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-teal-500/20 text-teal-300" aria-hidden>
+                    <Check className="h-3 w-3" strokeWidth={3} />
+                  </span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <p className="text-[11px] leading-relaxed text-white/55">
+            Map and place data are provided by OpenStreetMap contributors.
           </p>
+        </section>
 
-          <svg viewBox="0 0 420 300" className="mx-auto my-8 w-full max-w-[340px]" fill="none" aria-hidden>
-            <circle cx="210" cy="148" r="118" stroke="rgba(255,255,255,0.10)"/>
-            <circle cx="210" cy="148" r="86" stroke="rgba(255,255,255,0.08)"/>
-            <path d="M64 224h292" stroke="rgba(255,255,255,0.18)" strokeWidth="1.5"/>
-            <path d="M120 224V136l90-64 90 64v88" stroke="rgba(255,255,255,0.85)" strokeWidth="2.4" strokeLinejoin="round"/>
-            <path d="M172 224v-58h76v58" stroke="#3ecaa9" strokeWidth="2.4" strokeLinejoin="round"/>
-            <path d="M148 166h124" stroke="rgba(255,255,255,0.28)" strokeWidth="1.5"/>
-            <path d="M95 224v-45h17v45M308 224v-58h17v58" stroke="rgba(255,255,255,0.35)" strokeWidth="2.4" strokeLinejoin="round"/>
-            <circle cx="298" cy="82" r="15" fill="#f97316" fillOpacity="0.85"/>
-          </svg>
-
-          <ul className="space-y-3" aria-label="What Nivasa offers">
-            {HIGHLIGHTS.map((item) => (<li key={item} className="flex items-start gap-2.5 text-sm text-white/80">
-                <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-teal-500/15 text-teal-300">
-                  <Check className="h-3 w-3" aria-hidden/>
-                </span>
-                {item}
-              </li>))}
-          </ul>
-        </div>
-
-        <div className="relative border-t border-white/10 pt-5 text-xs leading-relaxed text-white/50">
-          Nivasa uses OpenStreetMap records. Rent, availability and contact details are often “Not available”; no
-          booking or payment is offered here.
-        </div>
-      </section>
-
-      <section className="flex flex-col justify-center" aria-label="Account access">
-        <div className="mx-auto w-full max-w-[480px]">
-          <div className="mb-5 flex items-center justify-between gap-3 lg:hidden">
-            <Logo />
-            <Badge tone="teal">Account access</Badge>
-          </div>
-
-          <div className="card p-6 shadow-lift sm:p-9">
-            <div className="mb-5">
-              {eyebrow && <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-teal-700">{eyebrow}</p>}
-              <h1 className="font-display text-2xl font-extrabold tracking-tight text-ink-950 sm:text-3xl">{title}</h1>
-              {description && <p className="mt-2 text-sm leading-relaxed text-ink-500">{description}</p>}
+        <section aria-label={title} className="flex items-center justify-center">
+          <div className="w-full max-w-md rounded-3xl border border-ink-100 bg-white p-6 shadow-soft sm:p-8">
+            {backTo && (
+              <Link to={backTo} className="mb-5 inline-flex items-center gap-1.5 text-xs font-semibold text-ink-500 transition hover:text-teal-700">
+                <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
+                {backLabel || 'Back'}
+              </Link>
+            )}
+            <div className="mb-6 lg:hidden">
+              <Logo />
             </div>
-
-            <div className="mb-6 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-3 text-xs leading-relaxed text-amber-900" role="note">
-              <Check className="mt-0.5 h-4 w-4 shrink-0" aria-hidden/>
-              <span>
-                Records come from OpenStreetMap and other attributed sources. Missing rent, availability or contact
-                details are labelled “Not available”.
-              </span>
-            </div>
-
-            {children}
+            {eyebrow && <p className="eyebrow">{eyebrow}</p>}
+            <h1 className="mt-2 font-display text-2xl font-extrabold tracking-tight text-ink-950 sm:text-3xl">{title}</h1>
+            {description && <p className="mt-2 text-sm leading-relaxed text-ink-500">{description}</p>}
+            <div className="mt-7">{children}</div>
+            {footer && <div className="mt-6 border-t border-ink-100 pt-5 text-center text-xs text-ink-500">{footer}</div>}
           </div>
-
-          {footer && <div className="mt-6 text-center text-sm text-ink-600">{footer}</div>}
-
-          {backTo && backLabel && (<Link to={backTo} className="mt-5 inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-ink-500 transition hover:text-ink-900">
-              <ArrowLeft className="h-3.5 w-3.5" aria-hidden/>
-              {backLabel}
-            </Link>)}
-        </div>
-      </section>
+        </section>
+      </div>
     </div>
-  </div>);
+  );
 }

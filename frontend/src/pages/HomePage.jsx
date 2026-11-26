@@ -13,7 +13,6 @@ import {
   Search,
   ShieldCheck,
   SlidersHorizontal,
-  Sparkles,
   Users,
   Wallet,
 } from 'lucide-react';
@@ -32,7 +31,7 @@ const STAY_TYPES = [
   { category: 'private_room', icon: KeyRound, description: 'A room of your own with flexible terms.' },
   { category: 'shared_room', icon: Users, description: 'Share costs without giving up your own space.' },
   { category: 'flat_1bhk', icon: Building2, description: 'Independent living for a focused routine.' },
-  { category: 'co_living', icon: Sparkles, description: 'Furnished homes with community amenities.' },
+  { category: 'co_living', icon: Users, description: 'Furnished homes with community amenities.' },
 ];
 
 const SEARCH_EXAMPLES = ['Mumbai', 'Bengaluru', 'Pune', 'Delhi'];
@@ -79,19 +78,16 @@ export function HomePage() {
               Search any Indian city, locality, landmark or address
             </span>
             <h1 className="mt-6 font-display text-4xl font-extrabold leading-[1.08] tracking-tight text-balance sm:text-5xl lg:text-[56px]">
-              Find a real place to stay, <span className="text-teal-300">with nothing invented.</span>
+              Find your next place to stay, <span className="text-teal-300">with clarity.</span>
             </h1>
             <p className="mt-5 max-w-2xl text-sm leading-relaxed text-white/70 sm:text-base">
-              Nivasa resolves your location through OpenStreetMap geocoding, then shows only
-              genuine accommodation records we can attribute. Missing prices, contacts and
-              availability stay visibly marked as unavailable.
+              Search any location across India and discover places to stay nearby. Compare options, check distances, and save the ones you like.
             </p>
             <div className="mt-8 max-w-3xl">
               <LocationSearchBar variant="hero" />
             </div>
             <p className="mt-3 pl-1 text-[11px] leading-relaxed text-white/50">
-              Place data © OpenStreetMap contributors, ODbL 1.0. Genuine geographic records do
-              not include rent, availability or owner contact unless a source supplies them.
+              Search by city, locality, landmark, or address anywhere in India.
             </p>
           </div>
 
@@ -99,9 +95,7 @@ export function HomePage() {
             <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-5 shadow-lift backdrop-blur-sm sm:p-6">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-teal-300">
-                    Try a search
-                  </p>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-teal-300">Try a search</p>
                   <p className="mt-1 text-sm font-semibold text-white">Anywhere in India</p>
                 </div>
                 <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/10 text-teal-200">
@@ -115,18 +109,14 @@ export function HomePage() {
                       <MapPin className="h-4 w-4 shrink-0 text-saffron-400" aria-hidden />
                       <span className="truncate">{place}</span>
                     </span>
-                    <Link
-                      to={`/search?q=${encodeURIComponent(place)}&radius=5`}
-                      className="shrink-0 text-[11px] font-semibold text-teal-200 hover:text-white"
-                    >
+                    <Link to={`/search?q=${encodeURIComponent(place)}&radius=5`} className="shrink-0 text-[11px] font-semibold text-teal-200 hover:text-white">
                       Search
                     </Link>
                   </li>
                 ))}
               </ul>
               <p className="mt-5 border-t border-white/10 pt-4 text-[11px] leading-relaxed text-white/60">
-                These are example queries, not a restricted place index. Type any Indian
-                location into the search field or use your current position.
+                Type any Indian location into the search field or use your current position.
               </p>
             </div>
           </div>
@@ -137,8 +127,8 @@ export function HomePage() {
         <div className="shell">
           <SectionHeading
             eyebrow="Explore by stay type"
-            title="Different stays, different kinds of freedom"
-            description="Pick a type to filter genuine accommodation records near a location."
+            title="Find the stay that fits you"
+            description="Choose a stay type to start your search."
           />
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {STAY_TYPES.map(({ category, icon: Icon, description }) => (
@@ -154,7 +144,7 @@ export function HomePage() {
                   <span className="block font-display text-[15px] font-bold text-ink-950">{CATEGORY_LABELS[category]}</span>
                   <span className="mt-1 block text-xs leading-relaxed text-ink-500">{description}</span>
                   <span className="mt-3 inline-flex items-center gap-1.5 text-[11px] font-semibold text-teal-700">
-                    Browse this type <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden />
+                    Browse <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden />
                   </span>
                 </span>
               </Link>
@@ -166,8 +156,8 @@ export function HomePage() {
       <section className="shell py-14 sm:py-16">
         <SectionHeading
           eyebrow="Recently discovered"
-          title="Genuine records from your searches"
-          description="Records appear here only after you search a real location. No sample properties are substituted."
+          title="Places near your searches"
+          description="Places appear here after you search a location."
           actionLabel="Start a search"
           actionTo="/explore"
         />
@@ -178,20 +168,20 @@ export function HomePage() {
         ) : (
           <EmptyState
             icon={Search}
-            title="No genuine records discovered yet"
-            description="Search for a city, locality, landmark or address to load real OpenStreetMap accommodation records near it."
+            title="Start exploring"
+            description="Search for a city, locality, landmark or address to find places to stay nearby."
             action={<Link to="/explore" className={buttonClasses('primary', 'md')}>Find stays near a location</Link>}
           />
         )}
       </section>
 
       <section className="shell py-14 sm:py-16">
-        <SectionHeading eyebrow="How it works" title="Four steps from search to shortlist" description="A transparent flow built around data we can actually verify." />
+        <SectionHeading eyebrow="How it works" title="Four simple steps" description="From search to shortlist, everything is clear and easy." />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StepCard number="01" icon={Search} title="Pick any place" body="Search a city, campus, office, locality, landmark or full address through real geocoding." />
-          <StepCard number="02" icon={SlidersHorizontal} title="Set radius & filters" body="Choose how far to look, then narrow by category, rent and available data." />
-          <StepCard number="03" icon={Scale} title="Compare what is known" body="Compare genuine records side by side. Missing prices and contacts stay missing." />
-          <StepCard number="04" icon={ClipboardCheck} title="Save & revisit" body="Shortlist real records and compare up to four in this browser." />
+          <StepCard number="01" icon={Search} title="Search any place" body="Search a city, campus, office, locality, landmark or full address." />
+          <StepCard number="02" icon={SlidersHorizontal} title="Set radius & filters" body="Choose how far to look, then narrow by category and preferences." />
+          <StepCard number="03" icon={Scale} title="Compare options" body="Compare places side by side to find the right fit." />
+          <StepCard number="04" icon={ClipboardCheck} title="Save & revisit" body="Save places you like and come back to them anytime." />
         </div>
       </section>
 
@@ -199,39 +189,37 @@ export function HomePage() {
         <div className="shell grid gap-5 lg:grid-cols-2">
           <div className="card p-6 sm:p-7">
             <span className="grid h-11 w-11 place-items-center rounded-xl bg-saffron-50 text-saffron-600">
-              <Sparkles className="h-5 w-5" aria-hidden />
+              <Compass className="h-5 w-5" aria-hidden />
             </span>
-            <h2 className="mt-4 font-display text-xl font-extrabold text-ink-950">Recommendations you can question</h2>
+            <h2 className="mt-4 font-display text-xl font-extrabold text-ink-950">Smart recommendations</h2>
             <p className="mt-2 text-sm leading-relaxed text-ink-500">
-              The assistant ranks only records returned by your search and explains its rules.
-              It cannot invent a property, price, contact or review.
+              Get suggestions based on your search results and preferences to help you decide faster.
             </p>
             <Link to="/assistant" className={buttonClasses('outline', 'sm', false, 'mt-5')}>
-              Open recommendations <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+              Get recommendations <ArrowRight className="h-3.5 w-3.5" aria-hidden />
             </Link>
           </div>
           <div className="card p-6 sm:p-7">
             <span className="grid h-11 w-11 place-items-center rounded-xl bg-teal-50 text-teal-700">
               <Wallet className="h-5 w-5" aria-hidden />
             </span>
-            <h2 className="mt-4 font-display text-xl font-extrabold text-ink-950">Compare only known costs</h2>
+            <h2 className="mt-4 font-display text-xl font-extrabold text-ink-950">Compare clearly</h2>
             <p className="mt-2 text-sm leading-relaxed text-ink-500">
-              When a source supplies prices, we separate deposit, brokerage, maintenance, food
-              and electricity. When it does not, every affected field reads “Not available”.
+              See rent, deposit, and other costs side by side. Missing details are clearly marked as unavailable.
             </p>
             <Link to="/compare" className={buttonClasses('outline', 'sm', false, 'mt-5')}>
-              See comparison <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+              Compare places <ArrowRight className="h-3.5 w-3.5" aria-hidden />
             </Link>
           </div>
         </div>
       </section>
 
       <section className="shell py-14 sm:py-16">
-        <SectionHeading eyebrow="Trust & verification" title="Honest labels, no invented proof" description="We would rather show you what we don't know than fill the gaps with fiction." />
+        <SectionHeading eyebrow="Why Nivasa" title="Built for clear decisions" description="Simple tools that help you find the right place without confusion." />
         <div className="grid gap-4 lg:grid-cols-3">
-          <TrustCard icon={BadgeCheck} title="Clear listing states" body="Records are labelled verified or unverified based on evidence from their source. No fabricated records enter the product catalogue." />
-          <TrustCard icon={ShieldCheck} title="No invented contacts or reviews" body="Contact details and ratings appear only when a permitted source supplies them. Otherwise they read “Not available”." />
-          <TrustCard icon={MapPin} title="Attributed places" body="Geographic data is provided by OpenStreetMap contributors with visible attribution and licence information." />
+          <TrustCard icon={BadgeCheck} title="Clear information" body="Important details are shown clearly, and anything missing is marked as unavailable." />
+          <TrustCard icon={ShieldCheck} title="Honest listings" body="We show only the information available for each place — no guesses or made-up details." />
+          <TrustCard icon={MapPin} title="Location-first search" body="Start from where you need to be and find places nearby across India." />
         </div>
       </section>
 
@@ -242,16 +230,15 @@ export function HomePage() {
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.16em] text-teal-300">For property owners</p>
               <h2 className="mt-2 max-w-2xl font-display text-2xl font-extrabold tracking-tight sm:text-3xl">
-                Submit a genuine property record
+                List your property on Nivasa
               </h2>
               <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/70">
-                Owners and managers can submit a listing with a verified location and contact
-                detail. Every submission is marked unverified and pending review until checked.
+                Add your property details, location, and pricing to reach people looking for a place to stay.
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
               <Link to="/owner/add-property" className={buttonClasses('secondary', 'md')}>
-                Submit a property <ArrowRight className="h-4 w-4" aria-hidden />
+                List a property <ArrowRight className="h-4 w-4" aria-hidden />
               </Link>
               <Link to="/owner/dashboard" className={buttonClasses('ghost', 'md', false, 'text-white hover:bg-white/10 hover:text-white')}>
                 Owner dashboard

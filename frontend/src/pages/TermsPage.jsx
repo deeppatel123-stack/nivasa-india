@@ -13,9 +13,8 @@ export function TermsPage() {
         {[
           'Nivasa is an accommodation record discovery tool, not a rental, booking or brokerage service.',
           'Records come from OpenStreetMap and attributed submissions; missing details read “Not available”.',
-          'Accounts and contact messages are stored by the API in MongoDB or a local development file.',
-          'No listing portal is scraped and no paid data is purchased.',
-          'No partner APIs, Google Places key or email delivery are connected.',
+          'Some place details may be unavailable when not provided by a source.',
+          'Always confirm important details directly before making decisions.',
           'These terms are a draft and need review before any commercial launch.',
         ].map((item) => (<div key={item} className="surface-muted flex items-start gap-2.5 rounded-xl p-3.5 text-xs leading-relaxed text-ink-600">
             <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-teal-500" aria-hidden/>
@@ -65,36 +64,27 @@ export function TermsPage() {
 
       <PolicySection id="terms-accounts" number={4} title="Accounts and assistant features">
         <p>
-          Registration and login are handled by the API. Credentials are sent to the server; this client stores the
-          returned token and cached user record, not the password. Password reset delivery is not configured, and the
-          reset page reports that status rather than claiming an email was sent. No Google sign-in control is offered.
+          You can create an account to save places and manage your activity. Keep your login details secure. If you forget your password, use the reset flow; if password reset delivery is not available, the app will tell you clearly.
         </p>
         <p>
           The assistant uses local rules over the records you can already see. It does not call an external AI service,
-          confirm availability or make factual claims about a real place. Owner submissions are stored with provenance
-          and a pending moderation state.
+          confirm availability or make factual claims about a real place. Owner submissions are reviewed before being published.
         </p>
       </PolicySection>
 
-      <PolicySection id="terms-submissions" number={5} title="Form submissions and your content">
+      <PolicySection id="terms-submissions" number={5} title="Messages and submissions">
         <p>
-          The contact form validates input in the browser and then posts it to the API. The response includes the stored
-          record id and the persistence mode — MongoDB when configured, otherwise a local development file. No email
-          notification is generated, and no support email or phone number is published here.
+          When you send a message or submit a listing, you are responsible for the information you provide. Please share accurate details and avoid including sensitive personal or financial information.
         </p>
         <p>
-          You remain responsible for what you submit. Browser-held shortlists and session data are described in the{' '}
-          <Link className="font-semibold text-teal-700 hover:underline" to="/privacy">draft privacy policy</Link>. Avoid entering information you would not
-          want stored in a server record or browser profile.
+          Browser-held shortlists and session data are described in the{' '}
+          <Link className="font-semibold text-teal-700 hover:underline" to="/privacy">draft privacy policy</Link>.
         </p>
       </PolicySection>
 
-      <PolicySection id="terms-sources" number={6} title="Data sources and persistence">
+      <PolicySection id="terms-sources" number={6} title="Listing information">
         <p>
-          Records are sourced from OpenStreetMap and explicit submissions. No portal scraping occurs, no partner APIs
-          are connected, no billing-enabled Google Places key is configured, and no paid data feeds are used. Server
-          records and messages persist in MongoDB or a local development file, with source fields shown in the
-          interface where provided.
+          Nivasa shows place and listing information from available sources. Some details may be missing or change over time. Always confirm important information, such as price, availability, and contact details, directly before making decisions.
         </p>
       </PolicySection>
 
@@ -140,9 +130,7 @@ export function TermsPage() {
 
       <PolicySection id="terms-contact" number={12} title="Questions and notices">
         <p>
-          The <Link className="font-semibold text-teal-700 hover:underline" to="/contact">contact page</Link> stores a
-          message and returns a reference id, but email delivery is not configured. This draft is a starting point for
-          review, not legal advice and not a substitute for a published agreement.
+          Use the <Link className="font-semibold text-teal-700 hover:underline" to="/contact">contact page</Link> for questions. This draft is a starting point for review, not legal advice and not a substitute for a published agreement.
         </p>
       </PolicySection>
     </div>

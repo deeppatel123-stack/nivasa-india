@@ -27,9 +27,7 @@ function ImageArea({ property }) {
     return (<>
       <img src={image.url} alt={image.alt} loading="lazy" onError={() => setFailed(true)} className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]"/>
       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink-950/70 to-transparent px-3 pb-2.5 pt-8">
-        <p className="text-[10px] font-medium text-white/80">
-          {image.credit ? `Photo credit: ${image.credit}` : 'Source-supplied image'}
-        </p>
+        {image.credit ? <p className="text-[10px] font-medium text-white/80">Photo: {image.credit}</p> : null}
       </div>
     </>);
 }
@@ -106,7 +104,7 @@ export function PropertyCard({ property, result, layout = 'grid', }) {
           <div className="mt-2 flex items-center justify-between gap-2 border-t border-ink-100 pt-3">
             <p className="flex items-center gap-1.5 text-[11px] text-ink-500">
               <ShieldCheck className="h-3.5 w-3.5" aria-hidden/>
-              Source: {property.source?.name || 'Not available'} · Updated: {property.lastUpdated ? formatDate(property.lastUpdated) : 'Not available'}
+              {property.lastUpdated ? `Updated ${formatDate(property.lastUpdated)}` : 'Details may be limited'}
             </p>
             <Link to={`/property/${property.id}`} className="inline-flex items-center gap-1 text-xs font-semibold text-teal-700 transition hover:gap-2">
               View details <ArrowUpRight className="h-3.5 w-3.5" aria-hidden/>

@@ -48,15 +48,15 @@ export function SearchResultsPage() {
       <EmptyState
         icon={MapPin}
         title="Choose a location to begin"
-        description="Nivasa needs a resolved Indian location before it can search genuine nearby accommodation records. Enter a city, locality, landmark or address above, or use your current position."
+        description="Enter a city, locality, landmark, or address to find places nearby."
       />
     );
   } else if (isError) {
     content = (
       <EmptyState
         icon={RefreshCw}
-        title="Could not load genuine records"
-        description={error?.message || 'The listing provider or API could not be reached. No sample listings are substituted.'}
+        title="Could not load results"
+        description={error?.message || 'Something went wrong while loading results. Please try again.'}
         action={<Button onClick={() => void refetch()}>Try again</Button>}
       />
     );
@@ -64,12 +64,10 @@ export function SearchResultsPage() {
     content = (
       <EmptyState
         icon={Search}
-        title={meta?.demoIncluded ? 'No live records found here' : 'No genuine accommodation records found'}
-        description={meta?.demoIncluded
-          ? `No live OSM accommodation records matched this search within ${radiusKm} km of ${query || 'this location'}. Clearly labeled DEMO DATA may appear for development/testing only; demo listings are not verified properties.`
-          : `No matching OpenStreetMap accommodation places were found within ${radiusKm} km of ${query || 'this location'} with the current filters. Widen the radius, clear filters, or submit a genuine property record.`}
-        action={<Button onClick={resetFilters}>Clear all filters</Button>}
-        secondary={<Link to="/owner/add-property" className={buttonClasses('outline', 'md')}>Submit a property</Link>}
+        title="No places found"
+        description={`No places matched your search within ${radiusKm} km${hasQuery ? ` of ${query}` : ''}. Try widening the radius, clearing filters, or searching a different location.`}
+        action={<Button onClick={resetFilters}>Clear filters</Button>}
+        secondary={<Link to="/owner/add-property" className={buttonClasses('outline', 'md')}>List a property</Link>}
       />
     );
   } else {
@@ -82,11 +80,11 @@ export function SearchResultsPage() {
 
   return (
     <PageShell
-      eyebrow={hasQuery ? 'Location search' : 'Browse stays'}
-      title={hasQuery ? `Stays near ${query}` : 'Explore stays across India'}
+      eyebrow={hasQuery ? 'Location search' : 'Explore stays'}
+      title={hasQuery ? `Places near ${query}` : 'Explore stays across India'}
       description={hasQuery
-        ? `Accommodation records within ${radiusKm} km of the resolved Indian location. Live records show source attribution; any DEMO DATA is clearly labeled and never shown as verified.`
-        : 'Enter any Indian location to discover accommodation records nearby. Live data is attributed; demo data is clearly labeled.'}
+        ? `Showing places within ${radiusKm} km of your selected location.`
+        : 'Search any location in India to find places nearby.'}
       breadcrumbs={[{ label: pathname === '/search' ? 'Search' : 'Explore' }]}
       actions={<LinkButton to={mapHref} variant="outline" size="sm"><MapIcon className="h-4 w-4" aria-hidden />Map view</LinkButton>}
     >
@@ -124,22 +122,19 @@ export function SearchResultsPage() {
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2" aria-live="polite">
             <p className="text-xs font-medium text-ink-600">
               {isLoading
-                ? 'Loading genuine records…'
+                ? 'Loading places…'
                 : !hasCoordinates
-                  ? 'Awaiting a resolved location'
-                  : `${results.length} genuine ${results.length === 1 ? 'record' : 'records'}${hasQuery ? ` within ${radiusKm} km` : ''}`}
-            </p>
-            <p className="text-[11px] text-ink-400">
-              {meta?.attribution || 'Place data © OpenStreetMap contributors, ODbL 1.0'}
+                  ? 'Choose a location to start'
+                  : `${results.length} ${results.length === 1 ? 'place' : 'places'}${hasQuery ? ` within ${radiusKm} km` : ''}`}
             </p>
           </div>
           {content}
         </section>
       </div>
 
-      <Modal open={filtersOpen} onClose={() => setFiltersOpen(false)} title="Refine your search" description="Filters apply only to genuine records returned for this location.">
+      <Modal open={filtersOpen} onClose={() => setFiltersOpen(false)} title="Refine your search" description="Adjust filters to find the right place.">
         <SearchFiltersPanel compact />
-        <Button fullWidth className="mt-5" onClick={() => setFiltersOpen(false)}>Show {results.length} {results.length === 1 ? 'record' : 'records'}</Button>
+        <Button fullWidth className="mt-5" onClick={() => setFiltersOpen(false)}>Show {results.length} {results.length === 1 ? 'place' : 'places'}</Button>
       </Modal>
     </PageShell>
   );

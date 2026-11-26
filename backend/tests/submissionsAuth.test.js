@@ -23,6 +23,7 @@ async function register() {
     name: `Owner ${crypto.randomUUID().slice(0, 8)}`,
     email: `owner-${crypto.randomUUID()}@example.com`,
     password: 'password-1234',
+    role: 'owner',
   });
   expect(response.status).toBe(201);
   return response.body;

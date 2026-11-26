@@ -39,7 +39,7 @@ const submissionBody = () => ({
 
 async function register(name) {
   const address = email();
-  const response = await request(app).post('/api/auth/register').send({ name, email: address, password: 'password-1234' });
+  const response = await request(app).post('/api/auth/register').send({ name, email: address, password: 'password-1234', role: 'seeker' });
   expect(response.status).toBe(201);
   return { token: response.body.token, user: response.body.user, email: address };
 }

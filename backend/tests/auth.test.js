@@ -17,22 +17,21 @@ describe('account API', () => {
       name: 'Asha Rao',
       email: email(),
       password: 'correct-horse-battery',
+      role: 'seeker',
     });
 
     expect(response.status).toBe(201);
-    expect(response.body.user).toMatchObject({ name: 'Asha Rao', role: 'user' });
+    expect(response.body.user).toMatchObject({ name: 'Asha Rao', role: 'seeker' });
     expect(response.body.user.id).toBeTruthy();
     expect(response.body.user.email).toMatch(/^account-/);
     expect(response.body.user).not.toHaveProperty('passwordHash');
-    expect(response.body.storage).toBe('local-development-file');
     expect(response.body.token.split('.')).toHaveLength(3);
     expect(verifyToken(response.body.token).sub).toBe(response.body.user.id);
-    if (response.body.tokenMode === 'ephemeral-dev') expect(response.body.warning).toMatch(/restart/);
   });
 
   it('rejects duplicate emails and weak or URL-based input', async () => {
     const address = email();
-    const body = { name: 'Ravi Kumar', email: address, password: 'long-enough-password' };
+    const body = { name: 'Ravi Kumar', email: address, password: 'long-enough-password', role: 'owner' };
     expect((await request(app).post('/api/auth/register').send(body)).status).toBe(201);
     expect((await request(app).post('/api/auth/register').send(body)).status).toBe(409);
 
@@ -43,7 +42,7 @@ describe('account API', () => {
 
   it('logs in only with the correct password', async () => {
     const address = email();
-    await request(app).post('/api/auth/register').send({ name: 'Meera Iyer', email: address, password: 'first-password-1' });
+    await request(app).post('/api/auth/register').send({ name: 'Meera Iyer', email: address, password: 'first-password-1', role: 'seeker' });
 
     const good = await request(app).post('/api/auth/login').send({ email: address.toUpperCase(), password: 'first-password-1' });
     expect(good.status).toBe(200);
@@ -61,13 +60,13 @@ describe('account API', () => {
       name: 'Noah Shah',
       email: email(),
       password: 'another-password',
+      role: 'seeker',
     });
     const token = registered.body.token;
 
     const me = await request(app).get('/api/auth/me').set('Authorization', `Bearer ${token}`);
     expect(me.status).toBe(200);
     expect(me.body.user).toEqual(registered.body.user);
-    expect(me.body.storage).toBe('local-development-file');
 
     expect((await request(app).get('/api/auth/me')).status).toBe(401);
     expect((await request(app).get('/api/auth/me').set('Authorization', `Bearer ${token}x`)).status).toBe(401);

@@ -1,5 +1,4 @@
 import { asyncHandler } from '../utils/asyncHandler.js';
-import { fileStorageLabel } from '../utils/storage.js';
 import { validateForgotPassword, validateLogin, validateRegister } from '../validators/authValidator.js';
 import { loginAccount, registerAccount, toPublicUser, withTokenNotice } from '../services/authService.js';
 
@@ -14,7 +13,7 @@ export const loginController = asyncHandler(async (req, res) => {
 });
 
 export const meController = asyncHandler(async (req, res) => {
-  return res.json({ user: toPublicUser(req.user), storage: fileStorageLabel() });
+  return res.json({ user: toPublicUser(req.user) });
 });
 
 /**

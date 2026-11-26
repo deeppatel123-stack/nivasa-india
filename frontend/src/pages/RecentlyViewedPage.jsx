@@ -17,13 +17,13 @@ export function RecentlyViewedPage() {
 
   const handleClear = () => {
     clearRecentlyViewed();
-    pushToast('Recently viewed trail cleared from this browser.', 'info');
+    pushToast('Recently viewed list cleared.', 'info');
   };
 
   return (
     <PageShell
       title="Recently viewed"
-      description="Genuine records you opened, shown in the order you visited them."
+      description="Places you opened recently, shown in the order you visited them."
       eyebrow="Your activity"
       actions={properties.length > 0 ? (
         <Button variant="outline" size="sm" leftIcon={<Trash2 className="h-3.5 w-3.5" aria-hidden />} onClick={handleClear}>Clear all</Button>
@@ -32,17 +32,16 @@ export function RecentlyViewedPage() {
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <Badge tone="teal">{properties.length} viewed</Badge>
-          <Badge tone="amber">Stored locally</Badge>
         </div>
-        <p className="text-xs text-ink-500">Newest first · up to 12 genuine records</p>
+        <p className="text-xs text-ink-500">Newest first · up to 12 places</p>
       </div>
 
       {properties.length === 0 ? (
         <EmptyState
           icon={History}
-          title="No recently viewed records"
-          description="Open any genuine record to start a trail here. The list updates newest first and stays in this browser."
-          action={<Link to="/explore" className={buttonClasses('primary', 'md')}>Find stays near a location</Link>}
+          title="No recently viewed places"
+          description="Open a place to see it here. Your recent list updates as you browse."
+          action={<Link to="/explore" className={buttonClasses('primary', 'md')}>Find places</Link>}
           secondary={<Link to="/map" className={buttonClasses('outline', 'md')}><MapPinned className="h-4 w-4" aria-hidden />Explore on the map</Link>}
         />
       ) : (
@@ -51,18 +50,12 @@ export function RecentlyViewedPage() {
             <div key={property.id} className="min-w-0">
               <div className="mb-2 flex items-center justify-between gap-2 px-0.5">
                 <Badge tone="neutral">#{index + 1} · {index === 0 ? 'Most recent' : 'Earlier'}</Badge>
-                <span className="text-[11px] text-ink-400">Genuine record</span>
               </div>
               <PropertyCard property={property} layout="grid" />
             </div>
           ))}
         </div>
       )}
-
-      <p className="mt-7 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-3 text-xs leading-relaxed text-amber-900" role="note">
-        This trail is stored in your browser, not in an account or on a server. Source data may
-        become stale; check the original source before acting on it.
-      </p>
     </PageShell>
   );
 }

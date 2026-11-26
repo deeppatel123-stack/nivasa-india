@@ -260,7 +260,7 @@ export function PropertyDetailsPage() {
                         <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-teal-600" aria-hidden/>
                         {rule}
                       </li>))}
-                  </ul>) : (<p className="mt-3 text-sm text-ink-500">No house rules were supplied for this record.</p>)}
+                  </ul>) : (<p className="mt-3 text-sm text-ink-500">No house rules provided.</p>)}
               </section>
 
               <section className="card p-5 sm:p-6" aria-labelledby="details-description-heading">
@@ -275,12 +275,9 @@ export function PropertyDetailsPage() {
 
             <aside className="space-y-4 lg:sticky lg:top-4 lg:self-start">
               <section className="card p-5" aria-labelledby="details-price-heading">
-                <div className="flex items-center justify-between gap-2">
-                  <h2 id="details-price-heading" className="font-display text-base font-bold text-ink-950">
-                    Price breakdown
-                  </h2>
-                  <Badge tone="neutral">Source amounts</Badge>
-                </div>
+                <h2 id="details-price-heading" className="font-display text-base font-bold text-ink-950">
+                  Price breakdown
+                </h2>
                 <div className="mt-4">
                   <PriceBreakdownPanel prices={property.prices} occupancy={property.occupancy}/>
                 </div>
@@ -298,26 +295,26 @@ export function PropertyDetailsPage() {
                   </dl>) : (<div className="mt-3 rounded-xl surface-muted p-3.5 text-xs leading-relaxed text-ink-600">
                     <p className="font-semibold text-ink-800">Contact details not available.</p>
                     <p className="mt-1">
-                      No verified contact details are supplied for this record. Use the enquiry form to send a message.
+                      Contact details are not available for this place. Use the enquiry form to send a message.
                     </p>
                   </div>)}
                 <Button variant="secondary" fullWidth className="mt-4" onClick={() => setEnquiryOpen(true)} leftIcon={<MessageSquare className="h-4 w-4" aria-hidden/>} aria-label={`Send enquiry about ${property.title}`}>
                   Send enquiry
                 </Button>
                 <p className="mt-2 text-[11px] text-ink-400">
-                  The enquiry is sent through the API. The response shows its record id and storage mode.
+                  Send a message to ask about availability, pricing, or other details.
                 </p>
               </section>
             </aside>
           </div>
 
           <section className="mt-10" aria-label="Related listings">
-            <SectionHeading eyebrow="More records" title="Related listings" description="Other genuine records cached in this browser, ranked by category, city and reference landmark." actionLabel="Explore all" actionTo="/explore"/>
+            <SectionHeading eyebrow="More places" title="Similar places" description="Other places you may want to consider nearby." actionLabel="Explore all" actionTo="/explore"/>
             {relatedLoading ? (<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {[0, 1, 2].map((item) => <PropertyCardSkeleton key={item}/>)}
               </div>) : related.length ? (<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {related.map((item) => <PropertyCard key={item.id} property={item}/>)}
-              </div>) : (<EmptyState icon={Search} title="No related records available" description="No other records from this source are cached in this browser right now." action={<LinkButton to="/explore" variant="outline">Explore listings</LinkButton>}/>)}
+              </div>) : (<EmptyState icon={Search} title="No similar places right now" description="Explore more places to find other options." action={<LinkButton to="/explore" variant="outline">Explore listings</LinkButton>}/>)}
           </section>
 
           <EnquiryModal open={enquiryOpen} onClose={() => setEnquiryOpen(false)} propertyTitle={property.title} listingId={property.id}/>

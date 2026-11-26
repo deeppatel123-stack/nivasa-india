@@ -7,9 +7,8 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useSavedStore } from '@/store/useSavedStore';
 const NAV_LINKS = [
     { to: '/explore', label: 'Explore' },
-    { to: '/map', label: 'Map search' },
+    { to: '/map', label: 'Map' },
     { to: '/compare', label: 'Compare' },
-    { to: '/assistant', label: 'Recommendations' },
 ];
 export function Logo({ light = false }) {
     return (<Link to="/" className="group inline-flex items-center gap-2.5" aria-label="Nivasa home">

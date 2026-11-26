@@ -178,7 +178,7 @@ function Receipt({ result, onReset }) {
         </p>
         <dl className="mt-6 grid gap-4 rounded-xl bg-surface-muted p-4 text-xs sm:grid-cols-2">
           <div>
-            <dt className="text-ink-500">Record ID</dt>
+            <dt className="text-ink-500">Reference</dt>
             <dd className="mt-0.5 break-all font-semibold text-ink-900">{result.id}</dd>
           </div>
           <div>
@@ -189,14 +189,9 @@ function Receipt({ result, onReset }) {
             <dt className="text-ink-500">Published</dt>
             <dd className="mt-0.5 font-semibold text-ink-900">{result.published}</dd>
           </div>
-          <div>
-            <dt className="text-ink-500">Storage mode</dt>
-            <dd className="mt-0.5 break-all font-semibold text-ink-900">{result.storage}</dd>
-          </div>
         </dl>
         <p className="mt-4 text-xs leading-relaxed text-ink-500">
-          The record is not shown as a verified listing until moderation is complete. Photos cannot be attached
-          until authorised photo storage is connected.
+          Your listing will be reviewed before it appears publicly. Make sure your contact details are accurate so interested people can reach you.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
           <LinkButton to="/owner/listings" variant="secondary" leftIcon={<ReceiptText className="h-4 w-4"/>}>
@@ -414,9 +409,8 @@ export function AddPropertyPage() {
             const record = result?.record || {};
             setSubmitResult({
                 id: record.id ?? record.externalId ?? 'Not available',
-                status: record.status ?? result?.moderation ?? 'Not available',
-                published: typeof record.published === 'boolean' ? (record.published ? 'Published' : 'Not published') : 'Not available',
-                storage: result?.storage ?? record.persistence ?? record.storage ?? 'Not available',
+                status: record.status ?? 'Pending review',
+                published: typeof record.published === 'boolean' ? (record.published ? 'Published' : 'Not published') : 'Not published',
                 message: result?.message || '',
             });
             pushToast('Submission received. It is pending moderation and not published.', 'success');
@@ -429,12 +423,12 @@ export function AddPropertyPage() {
     }
 
     if (!user) {
-        return (<PageShell eyebrow="Owner tools" title="Add property" description="Submit an owner record for moderation before it can appear as a listing." breadcrumbs={[{ label: 'Owner tools', to: '/owner/dashboard' }, { label: 'Add property' }]}>
+        return (<PageShell eyebrow="Owner tools" title="Add property" description="Add your property details and submit it for review." breadcrumbs={[{ label: 'Owner dashboard', to: '/owner/dashboard' }, { label: 'Add property' }]}>
           <div className="mx-auto max-w-2xl">
-            <EmptyState icon={LockKeyhole} title="Log in to submit a property" description="Only signed-in owners can submit records. Your submission is saved against your account and reviewed before publication." action={<LinkButton to="/login" state={{ from: '/owner/add-property' }} leftIcon={<LockKeyhole className="h-4 w-4"/>}>
+            <EmptyState icon={LockKeyhole} title="Log in to list a property" description="Sign in to submit your property details. Your listing will be reviewed before it appears publicly." action={<LinkButton to="/login" state={{ from: '/owner/add-property' }} leftIcon={<LockKeyhole className="h-4 w-4"/>}>
                   Log in
                 </LinkButton>} secondary={<LinkButton to="/owner/dashboard" variant="outline">
-                  Owner workspace
+                  Owner dashboard
                 </LinkButton>}/>
           </div>
         </PageShell>);
@@ -457,8 +451,8 @@ export function AddPropertyPage() {
         setField('amenities', form.amenities.includes(key) ? form.amenities.filter((item) => item !== key) : [...form.amenities, key]);
     };
 
-    return (<PageShell eyebrow="Owner tools" title="Add property" description="Submit an owner record with a mapped Indian location and a complete price breakdown." breadcrumbs={[
-            { label: 'Owner tools', to: '/owner/dashboard' },
+    return (<PageShell eyebrow="Owner tools" title="Add property" description="Add your property details, location, and pricing. Your listing will be reviewed before it goes live." breadcrumbs={[
+            { label: 'Owner dashboard', to: '/owner/dashboard' },
             { label: 'Add property' },
         ]} actions={<LinkButton to="/owner/dashboard" variant="outline" size="sm" leftIcon={<ArrowLeft className="h-4 w-4"/>}>
           Dashboard
@@ -557,7 +551,7 @@ export function AddPropertyPage() {
                     {selectedPlace && (<div className="mt-4 rounded-xl border border-teal-200 bg-teal-50/60 p-4 text-xs text-teal-950">
                       <p className="flex items-center gap-2 font-semibold">
                         <Check className="h-4 w-4" aria-hidden/>
-                        Location resolved from {selectedPlace.provider || 'the geocoder'}
+                        Location confirmed
                       </p>
                       <p className="mt-2 font-mono text-[11px] text-teal-900">
                         {selectedPlace.coordinates.lat}, {selectedPlace.coordinates.lng}

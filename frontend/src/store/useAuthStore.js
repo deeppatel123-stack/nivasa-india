@@ -12,8 +12,6 @@ function errorMessage(error) {
 
 export const useAuthStore = create((set) => ({
   user: cached?.user ?? null,
-  storage: cached?.storage ?? null,
-  tokenMode: cached?.tokenMode ?? null,
   status: 'idle',
   verified: false,
   error: null,
@@ -26,8 +24,6 @@ export const useAuthStore = create((set) => ({
       authService.signOut();
       set({
         user: null,
-        storage: null,
-        tokenMode: null,
         status: 'anonymous',
         verified: true,
         error: null,
@@ -41,8 +37,6 @@ export const useAuthStore = create((set) => ({
         const result = await authService.fetchSession();
         set({
           user: result.user,
-          storage: result.storage,
-          tokenMode: result.tokenMode,
           status: 'authenticated',
           verified: true,
           error: null,
@@ -53,8 +47,6 @@ export const useAuthStore = create((set) => ({
           authService.signOut();
           set({
             user: null,
-            storage: null,
-            tokenMode: null,
             status: 'anonymous',
             verified: true,
             error: null,
@@ -76,8 +68,6 @@ export const useAuthStore = create((set) => ({
     if (result.ok) {
       set({
         user: result.user,
-        storage: result.storage,
-        tokenMode: result.tokenMode,
         status: 'authenticated',
         verified: true,
         error: null,
@@ -86,13 +76,11 @@ export const useAuthStore = create((set) => ({
     return result;
   },
 
-  signUp: async (name, email, password) => {
-    const result = await authService.signUp(name, email, password);
+  signUp: async (name, email, password, role) => {
+    const result = await authService.signUp(name, email, password, role);
     if (result.ok) {
       set({
         user: result.user,
-        storage: result.storage,
-        tokenMode: result.tokenMode,
         status: 'authenticated',
         verified: true,
         error: null,
@@ -107,8 +95,6 @@ export const useAuthStore = create((set) => ({
     authService.signOut();
     set({
       user: null,
-      storage: null,
-      tokenMode: null,
       status: 'anonymous',
       verified: true,
       error: null,

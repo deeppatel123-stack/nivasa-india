@@ -38,7 +38,7 @@ export function MapDiscoveryPage() {
         coordinates: result.property.location.coordinates,
         label: result.property.title,
         priceLabel: formatINR(result.property.prices.rent),
-        note: result.property.prices.rent === null ? 'rent not available' : 'genuine record',
+        note: result.property.prices.rent === null ? 'Rent not available' : undefined,
         isActive: result.property.id === selectedId,
       })),
     [results, selectedId],
@@ -82,6 +82,7 @@ export function MapDiscoveryPage() {
   const listHref = query.trim()
     ? `/search?q=${encodeURIComponent(query)}&radius=${radiusKm}`
     : `/explore?radius=${radiusKm}`;
+
   let cards;
   if (isLoading) {
     cards = (
@@ -94,7 +95,7 @@ export function MapDiscoveryPage() {
       <EmptyState
         icon={Search}
         title="Search for a location first"
-        description="The map cannot plot genuine records until a city, locality, landmark or address has been resolved."
+        description="Enter a city, locality, landmark, or address to see places on the map."
         action={<Link to="/explore" className={buttonClasses('primary', 'md')}>Choose a location</Link>}
       />
     );
@@ -102,8 +103,8 @@ export function MapDiscoveryPage() {
     cards = (
       <EmptyState
         icon={Search}
-        title="Could not load genuine records"
-        description="The data provider or Nivasa API could not be reached. No sample listings are substituted."
+        title="Could not load places"
+        description="Something went wrong while loading results. Please try again."
         action={<Button onClick={() => void refetch()}>Try again</Button>}
       />
     );
@@ -111,10 +112,10 @@ export function MapDiscoveryPage() {
     cards = (
       <EmptyState
         icon={MapPin}
-        title="No genuine accommodation records nearby"
-        description="No matching OpenStreetMap accommodation places were found inside this radius. Try a larger radius or a different location, or submit a property record."
+        title="No places found nearby"
+        description="Try a larger radius, clear filters, or search a different location."
         action={<Button onClick={() => useSearchStore.getState().setRadius(20)}>Expand to 20 km</Button>}
-        secondary={<Link to="/owner/add-property" className={buttonClasses('outline', 'md')}>Submit a property</Link>}
+        secondary={<Link to="/owner/add-property" className={buttonClasses('outline', 'md')}>List a property</Link>}
       />
     );
   } else {
@@ -156,8 +157,8 @@ export function MapDiscoveryPage() {
   return (
     <PageShell
       eyebrow="Map discovery"
-      title="Explore genuine places on the map"
-      description="Pins come from attributed OpenStreetMap accommodation records near the location you choose. Choose a pin or a card to link them."
+      title="Explore places on the map"
+      description="See places near your selected location. Select a pin or card to view details."
       breadcrumbs={[{ label: 'Map search' }]}
       actions={<Link to={listHref} className={buttonClasses('outline', 'sm')}><List className="h-4 w-4" aria-hidden />List view</Link>}
     >
@@ -170,10 +171,10 @@ export function MapDiscoveryPage() {
       <div className="mb-5"><ActiveFilterChips /></div>
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,0.44fr)_minmax(0,0.56fr)]">
-        <section className="order-2 min-w-0 lg:order-1" aria-label="Accommodation records on the map">
+        <section className="order-2 min-w-0 lg:order-1" aria-label="Places on the map">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <p className="text-xs font-medium text-ink-600" aria-live="polite">
-              {isLoading ? 'Loading genuine records…' : `${results.length} genuine ${results.length === 1 ? 'record' : 'records'}`}
+              {isLoading ? 'Loading places…' : `${results.length} ${results.length === 1 ? 'place' : 'places'}`}
             </p>
             <button type="button" onClick={resetFilters} className="text-[11px] font-semibold text-teal-700 hover:underline">
               Clear filters
@@ -189,11 +190,7 @@ export function MapDiscoveryPage() {
           <p className="mt-2 flex items-start gap-1.5 text-[11px] leading-relaxed text-ink-500">
             <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
             <span>
-              Pins mark geographic accommodation places, not confirmed availability. Place data
-              © OpenStreetMap contributors, ODbL 1.0.{' '}
-              <strong className="font-semibold text-ink-700">
-                {selectedId ? `Selected: ${results.find((result) => result.property.id === selectedId)?.property.title}` : 'Select a pin or card to link them.'}
-              </strong>
+              {selectedId ? `Selected: ${results.find((result) => result.property.id === selectedId)?.property.title}` : 'Select a pin or card to link them.'}
             </span>
           </p>
         </div>

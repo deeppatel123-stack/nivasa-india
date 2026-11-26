@@ -22,10 +22,9 @@ export function PrivacyPage() {
         {[
           'Accommodation records come from OpenStreetMap and attributed submissions; no portal scraping is used.',
           'Missing rent, availability and contact fields are shown as “Not available”.',
-          'Accounts and contact messages are stored by the API in MongoDB when configured, otherwise in a local development file.',
-          'Passwords are sent to the API for verification and are not written to browser storage by this client.',
-          'Email delivery is not configured; no reset or confirmation email is sent.',
-          'No partner APIs, Google Places key or paid data feeds are connected.',
+          'Account and message information is handled securely to support your use of Nivasa.',
+          'Passwords are used for sign-in and are not stored in your browser by this app.',
+          'Some details may be unavailable when they are not provided by a source.',
           'Map tiles and geocoding requests go to OpenStreetMap-based services with attribution.',
           'Browser local storage keeps your shortlist, search state and session token on this device.',
         ].map((item) => (<div key={item} className="surface-muted flex items-start gap-2.5 rounded-xl p-3.5 text-xs leading-relaxed text-ink-600">
@@ -56,11 +55,10 @@ export function PrivacyPage() {
           </li>
           <li>
             <strong>Contact messages:</strong> the contact form sends your name, email address, subject, optional context
-            and message to the API. The response includes a record id and the persistence mode used.
+            and message so we can receive your request.
           </li>
           <li>
-            <strong>Owner submissions:</strong> supplied property records are stored with provenance and a pending
-            moderation state. Fields that are not supplied remain “Not available”.
+            <strong>Owner submissions:</strong> property details submitted by owners are reviewed before being published. Fields that are not provided remain “Not available”.
           </li>
           <li>
             <strong>Search requests:</strong> location text is sent to the geocoding proxy to resolve places. Record
@@ -68,8 +66,7 @@ export function PrivacyPage() {
           </li>
         </PolicyList>
         <p>
-          Server records persist in MongoDB when a connection is configured; otherwise the API writes to a local
-          development file. No personal data is sold, and no paid data source is used to enrich it.
+          We use the information you provide to operate the service, respond to messages, and improve your experience. We do not sell your personal information.
         </p>
       </PolicySection>
 
@@ -90,17 +87,12 @@ export function PrivacyPage() {
         </p>
       </PolicySection>
 
-      <PolicySection id="privacy-sources" number={4} title="Record sources and persistence">
+      <PolicySection id="privacy-sources" number={4} title="Listing information">
         <p>
-          Nivasa displays accommodation places from OpenStreetMap through its own API, with source attribution and
-          update information where available. OpenStreetMap place data does not include rent, availability, owner
-          identity or phone numbers; those fields render as “Not available”. No listing portal is scraped, and no
-          authentication or access control is bypassed.
+          Nivasa shows place and listing information from available sources. Some details, such as rent, availability, photos, or contact information, may not be available for every place. When information is missing, we show it as “Not available”.
         </p>
         <p>
-          Partner APIs are not connected, no billing-enabled Google Places key is configured, and no paid listing data
-          is purchased. Records and messages are persisted in MongoDB or a local development file, as reported by the
-          API.
+          We aim to present information clearly and avoid showing guessed or fabricated details.
         </p>
       </PolicySection>
 
@@ -125,10 +117,7 @@ export function PrivacyPage() {
           <li>Clear site data or local storage for this site in your browser settings.</li>
         </PolicyList>
         <p>
-          This draft does not document a self-service export or deletion route for server records. The contact form
-          stores a message with a reference id, but email delivery is not configured, so no acknowledgement is sent.
-          A reviewed policy should define access, correction, deletion and response expectations before any commercial
-          launch. No compliance certification is claimed here.
+          If you need help with your account or data, you can contact us through the contact page. A reviewed policy should define access, correction, deletion, and response expectations before any commercial launch.
         </p>
       </PolicySection>
 
@@ -150,9 +139,7 @@ export function PrivacyPage() {
 
       <PolicySection id="privacy-contact" number={9} title="Questions and contact">
         <p>
-          The <Link className="font-semibold text-teal-700 hover:underline" to="/contact">contact page</Link> posts your
-          message to the API and returns a record id. No email, phone or messaging channel is published, and no email
-          delivery is configured. Please do not send passwords, identity documents or payment details through any form.
+          Use the <Link className="font-semibold text-teal-700 hover:underline" to="/contact">contact page</Link> to reach us with questions. Please do not send passwords, identity documents, or payment details through the form.
         </p>
         <p>
           This draft is provided to make the intended data practices reviewable. It is not legal advice and should not

@@ -11,19 +11,15 @@ function readCachedSession() {
     if (!parsed || typeof parsed !== 'object') return null;
     const user = parsed.user ?? parsed;
     if (!user || typeof user !== 'object' || (!user.id && !user.email)) return null;
-    return {
-      user,
-      storage: parsed.storage ?? null,
-      tokenMode: parsed.tokenMode ?? null,
-    };
+    return { user };
   } catch {
     return null;
   }
 }
 
-function writeCachedSession({ user, storage, tokenMode }) {
+function writeCachedSession({ user }) {
   try {
-    localStorage.setItem(USER_KEY, JSON.stringify({ user, storage, tokenMode }));
+    localStorage.setItem(USER_KEY, JSON.stringify({ user }));
   } catch {
     // The API response still drives the in-memory session if storage is unavailable.
   }
@@ -64,24 +60,20 @@ export const authService = {
     return {
       ok: true,
       user: payload.user,
-      storage: payload.storage ?? null,
-      tokenMode: payload.tokenMode ?? null,
       message: 'Signed in.',
     };
   },
 
-  async signUp(name, email, password) {
+  async signUp(name, email, password, role) {
     const payload = requireUser(await apiFetch('/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ name, email, password }),
+      body: JSON.stringify({ name, email, password, role }),
     }));
     authToken.set(payload.token);
     writeCachedSession(payload);
     return {
       ok: true,
       user: payload.user,
-      storage: payload.storage ?? null,
-      tokenMode: payload.tokenMode ?? null,
       message: 'Account created and signed in.',
     };
   },
@@ -92,8 +84,6 @@ export const authService = {
     return {
       ok: true,
       user: payload.user,
-      storage: payload.storage ?? null,
-      tokenMode: payload.tokenMode ?? null,
     };
   },
 

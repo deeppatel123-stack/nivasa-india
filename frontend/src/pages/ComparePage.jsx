@@ -85,10 +85,10 @@ export function ComparePage() {
         return `~${formatDistance(haversineKm(coordinates, property.location.coordinates))}`;
     };
     const noSelection = ids.length === 0;
-    return (<PageShell eyebrow="Side-by-side review" title="Compare genuine records" description="Review up to four records from your searches. Prices, amenities and contacts appear only when a source supplied them." breadcrumbs={[{ label: 'Explore', to: '/explore' }, { label: 'Compare' }]} actions={compared.length ? <Button variant="outline" size="sm" onClick={clear} leftIcon={<X className="h-4 w-4" aria-hidden/>}>Clear all</Button> : undefined}>
+    return (<PageShell eyebrow="Side-by-side review" title="Compare places" description="Review up to four places side by side. Missing details are shown as Not available." breadcrumbs={[{ label: 'Explore', to: '/explore' }, { label: 'Compare' }]} actions={compared.length ? <Button variant="outline" size="sm" onClick={clear} leftIcon={<X className="h-4 w-4" aria-hidden/>}>Clear all</Button> : undefined}>
       {!compared.length ? (<EmptyState icon={Scale} title={noSelection ? 'Nothing to compare yet' : 'Comparison unavailable'} description={noSelection
-                ? 'Save up to four genuine records, then return here to compare known costs, amenities and location context.'
-                : 'The saved comparison records are no longer available in this browser. Clear them and choose fresh records.'} action={<LinkButton to="/explore">Find genuine records</LinkButton>} secondary={noSelection ? undefined : <Button variant="outline" onClick={clear}>Clear saved comparison</Button>}/>) : (<>
+                ? 'Save up to four places, then return here to compare them side by side.'
+                : 'The saved comparison items are no longer available. Clear them and choose new places.'} action={<LinkButton to="/explore">Find places</LinkButton>} secondary={noSelection ? undefined : <Button variant="outline" onClick={clear}>Clear saved comparison</Button>}/>) : (<>
           <div className="grid gap-4 lg:grid-cols-2">
             <section className="card p-4 sm:p-5" aria-labelledby="compare-best-heading">
               <div className="flex items-center gap-2">
@@ -117,8 +117,7 @@ export function ComparePage() {
               </div>
               <p className="mt-3 text-sm leading-relaxed text-ink-600">{upfrontExplanation}</p>
               <p className="mt-3 text-[11px] leading-relaxed text-ink-400">
-                Deposits are counted as one-time move-in costs only when a source supplied them.
-                Refund terms are not assumed, and a low upfront cost does not necessarily mean a lower monthly expense.
+                Deposits are shown as one-time move-in costs when provided. Refund terms and monthly costs can vary, so confirm details before deciding.
               </p>
             </section>
           </div>
@@ -137,7 +136,7 @@ export function ComparePage() {
             <div className="overflow-x-auto">
               <table className="w-full min-w-[780px] border-collapse text-left">
                 <caption className="sr-only">
-                  Side-by-side comparison of up to four genuine accommodation records, including source-supplied costs, amenities and verification
+                  Side-by-side comparison of up to four places, including costs, amenities, and available details
                 </caption>
                 <thead>
                   <tr>
@@ -159,9 +158,7 @@ export function ComparePage() {
                             <X className="h-3.5 w-3.5" aria-hidden/>
                           </button>
                         </div>
-                        <p className="mt-2 text-[10px] text-amber-700">
-                          {property.images[0] ? 'Source-supplied image' : 'Photo not available'}
-                        </p>
+                        {!property.images[0] && <p className="mt-2 text-[10px] text-amber-700">Photo not available</p>}
                       </th>))}
                   </tr>
                 </thead>
@@ -232,7 +229,7 @@ export function ComparePage() {
 
                   <tr>
                     <th scope="colgroup" colSpan={compared.length + 1} className="border-y border-ink-100 bg-ink-50/70 px-4 py-2 text-left text-[11px] font-bold uppercase tracking-[0.1em] text-ink-500">
-                      Amenities (source-supplied)
+                      Amenities
                     </th>
                   </tr>
                   {amenityKeys.map((key) => (<ComparisonRow key={key} label={AMENITY_LABELS[key]}>

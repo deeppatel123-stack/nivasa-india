@@ -82,7 +82,7 @@ export function issueToken(user) {
     sub: user.id,
     email: user.email,
     name: user.name,
-    role: user.role || 'user',
+    role: user.role === 'owner' ? 'owner' : 'seeker',
     iat: now,
     exp: now + TOKEN_TTL_SECONDS,
   });
@@ -116,7 +116,8 @@ export function verifyToken(token) {
 }
 
 export function toPublicUser(user) {
-  return { id: user.id, name: user.name, email: user.email, role: user.role || 'user' };
+  const role = user.role === 'owner' ? 'owner' : 'seeker';
+  return { id: user.id, name: user.name, email: user.email, role };
 }
 
 export function findUserByEmail(email) {
@@ -129,16 +130,14 @@ export function getUserById(id) {
   return readCollection(USERS).find((user) => user.id === id) || null;
 }
 
-function sessionFor(user, storage) {
+function sessionFor(user) {
   return {
     user: toPublicUser(user),
     token: issueToken(user),
-    storage,
-    tokenMode: tokenMode(),
   };
 }
 
-export async function registerAccount({ name, email, password }) {
+export async function registerAccount({ name, email, password, role }) {
   const storage = fileStorageLabel();
   if (findUserByEmail(email)) throw conflict('An account with this email already exists.');
 
@@ -147,17 +146,17 @@ export async function registerAccount({ name, email, password }) {
     name,
     email,
     passwordHash: await hashPassword(password),
-    role: 'user',
+    role: role === 'owner' ? 'owner' : 'seeker',
     createdAt: new Date().toISOString(),
   };
   writeCollection(USERS, user);
-  return sessionFor(user, storage);
+  return sessionFor(user);
 }
 
 export async function loginAccount({ email, password }) {
-  const storage = fileStorageLabel();
+  fileStorageLabel();
   const user = findUserByEmail(email);
   const valid = await verifyPassword(password, user?.passwordHash || DUMMY_HASH);
   if (!user || !valid) throw unauthorized('Invalid email or password.');
-  return sessionFor(user, storage);
+  return sessionFor(user);
 }

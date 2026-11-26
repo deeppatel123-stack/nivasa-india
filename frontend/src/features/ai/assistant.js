@@ -82,8 +82,8 @@ export const groundedAssistant = {
     const locationNote = context.location ? ` in the results near ${context.location}` : ' in the current search results';
     const constraintNote = applied.length ? ` applying ${applied.join(', ')}` : '';
     const text = top.length
-      ? `I found ${top.length} matching genuine ${top.length === 1 ? 'record' : 'records'}${locationNote}${constraintNote}. I ranked them by proximity and data completeness, then by the criterion in your question. I only used records returned by your search.`
-      : `I could not find a matching genuine record${locationNote}${constraintNote}. The current results may not include prices or amenities, or none fall inside the requested radius. Try another location or widen your search.`;
+      ? `I found ${top.length} matching ${top.length === 1 ? 'place' : 'places'}${locationNote}${constraintNote}. I ranked them based on your request and the details available.`
+      : `I couldn't find a matching place${locationNote}${constraintNote}. Try widening the radius, changing filters, or searching a different location.`;
 
     return {
       text,
@@ -92,8 +92,8 @@ export const groundedAssistant = {
         ? ['Compare these options', 'Which one has the lowest deposit?']
         : ['Search a nearby location'],
       caveats: [
-        'Grounded in the genuine records returned by your current search; no AI service is connected.',
-        'Rent, availability and contact details are shown only when a source supplied them.',
+        'Suggestions are based on your current search results.',
+        'Rent, availability, and contact details are shown only when provided.',
       ],
     };
   },

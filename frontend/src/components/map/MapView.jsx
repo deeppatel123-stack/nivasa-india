@@ -3,7 +3,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { cn } from '@/lib/utils';
 
-const ATTRIBUTION = '© OpenStreetMap contributors · ODbL 1.0';
+const ATTRIBUTION = '© OpenStreetMap contributors';
 const UNAVAILABLE_MESSAGE = 'Map unavailable in this environment';
 const FALLBACK_CENTER = { lat: 22, lng: 79 };
 const MARKER_SIZE = [104, 44];
@@ -43,7 +43,7 @@ function MapUnavailable({ className }) {
   return (<div className={cn('flex h-full w-full flex-col items-center justify-center gap-2 rounded-2xl border border-ink-100 bg-ink-50 p-6 text-center', className)} role="status">
     <p className="text-sm font-semibold text-ink-800">{UNAVAILABLE_MESSAGE}</p>
     <p className="max-w-sm text-xs leading-relaxed text-ink-500">
-      OpenStreetMap tiles need a browser with a map renderer. Browse the record list to review the same results.
+      The map could not be displayed here. You can still browse the places in the list view.
     </p>
     <p className="text-[10px] text-ink-400">{ATTRIBUTION}</p>
   </div>);
@@ -141,7 +141,7 @@ function LeafletMapView({ scene, className, onUnavailable }) {
   }, [scene]);
 
   return (<div className={cn('relative h-full w-full overflow-hidden rounded-2xl bg-ink-50', className)}>
-    <div ref={containerRef} className="h-full w-full" aria-label="OpenStreetMap map of accommodation records near the selected location"/>
+    <div ref={containerRef} className="h-full w-full" aria-label="Map of places near the selected location"/>
     <div className="pointer-events-none absolute left-3 top-3 z-[400] rounded-lg bg-white/95 px-2.5 py-1.5 text-[10px] font-semibold text-ink-600 shadow-soft">
       {ATTRIBUTION}
     </div>

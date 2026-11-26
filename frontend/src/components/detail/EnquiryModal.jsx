@@ -48,7 +48,7 @@ export function EnquiryModal({ open, onClose, propertyTitle, listingId }) {
     async function onSubmit(event) {
         event.preventDefault();
         if (!listingId) {
-            setError('No listing id is available for this record.');
+            setError('This place cannot be contacted right now. Please try again later.');
             return;
         }
         const nextErrors = {};
@@ -79,9 +79,7 @@ export function EnquiryModal({ open, onClose, propertyTitle, listingId }) {
             });
             const record = result?.record || {};
             setReceipt({
-                id: record.id ?? 'Not available',
-                storage: result?.storage ?? record.persistence ?? record.storage ?? 'Not available',
-                message: result?.message || '',
+                message: result?.message || 'Your enquiry has been sent.',
             });
         } catch (submitError) {
             setError(submitError.message || 'The enquiry could not be sent. Please try again.');
@@ -97,17 +95,8 @@ export function EnquiryModal({ open, onClose, propertyTitle, listingId }) {
             <CheckCircle2 className="h-4 w-4" aria-hidden/>
             Enquiry sent
           </p>
-          {receipt.message && <p className="mt-2 text-xs leading-relaxed text-teal-900">{receipt.message}</p>}
-          <dl className="mt-4 grid gap-2 text-xs sm:grid-cols-2">
-            <div>
-              <dt className="text-teal-800/70">Enquiry ID</dt>
-              <dd className="mt-0.5 break-all font-semibold text-teal-950">{receipt.id}</dd>
-            </div>
-            <div>
-              <dt className="text-teal-800/70">Storage mode</dt>
-              <dd className="mt-0.5 break-all font-semibold text-teal-950">{receipt.storage}</dd>
-            </div>
-          </dl>
+          <p className="mt-2 text-xs leading-relaxed text-teal-900">{receipt.message}</p>
+          <p className="mt-3 text-[11px] text-teal-800">The property owner or manager will see your message. Contact details are shared only when available.</p>
         </div>) : (<form onSubmit={onSubmit} className="space-y-4" noValidate>
           <Input label="Your name" value={form.name} onChange={(event) => setField('name', event.target.value)} placeholder="Your full name" autoComplete="name" error={errors.name}/>
           <Input label="Email address" type="email" value={form.email} onChange={(event) => setField('email', event.target.value)} placeholder="you@example.com" autoComplete="email" error={errors.email}/>
