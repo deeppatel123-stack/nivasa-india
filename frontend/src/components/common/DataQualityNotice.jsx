@@ -16,7 +16,7 @@ export function DataQualityNotice({ compact = false, className }) {
       <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
       <span>
         <strong className="font-semibold">Some listing details may be unavailable.</strong>{' '}
-        Rent, availability, photos, and contact information are shown only when provided. Missing details appear as “Not available”.
+        Rent, availability, photos, and contact information are shown only when provided. Missing details appear as “Not available”. Map/business records are not rental listings unless rental evidence exists.
       </span>
     </div>
   );

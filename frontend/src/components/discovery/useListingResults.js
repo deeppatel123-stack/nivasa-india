@@ -38,11 +38,14 @@ export function useListingResults() {
   );
 
   const demoCount = results.filter((item) => item.property.isDemo).length;
+  const rentalCount = results.filter((item) => item.property.recordType === 'rental_listing' && !item.property.isDemo).length;
+  const businessCount = results.filter((item) => item.property.recordType === 'accommodation_business' && !item.property.isDemo).length;
 
   return {
     listings,
     results,
-    meta: data?.meta ? { ...data.meta, demoCount } : (demoCount ? { demoCount } : null),
+    meta: data?.meta ? { ...data.meta, demoCount, rentalCount, businessCount } : { demoCount, rentalCount, businessCount },
+    diagnostics: data?.meta?.diagnostics || null,
     isLoading,
     isError,
     error,

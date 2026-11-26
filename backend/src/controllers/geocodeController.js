@@ -5,7 +5,7 @@ import { isValidCoordinate } from '../utils/geo.js';
 
 export const suggestPlacesController = asyncHandler(async (req, res) => {
   const query = String(req.query.q || '').trim();
-  if (query.length < 2) return res.json({ items: [], provider: 'photon', available: true });
+  if (query.length < 2) return res.json({ items: [], provider: 'none', available: true, indiaOnly: true, diagnostics: { query } });
   const result = await suggestPlaces(query, Math.min(Number(req.query.limit) || 6, 10));
   return res.json(result);
 });

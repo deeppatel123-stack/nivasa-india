@@ -46,6 +46,7 @@ export function normaliseListing(record) {
     verification: record.verification || 'unverified',
     availability: record.availability || 'unconfirmed',
     quality: record.quality || 'information_incomplete',
+    recordType: record.recordType || (record.isDemo ? 'demo_listing' : (Number.isFinite(Number(prices.rent)) ? 'rental_listing' : 'accommodation_business')),
     origin: record.provider || 'unknown',
     source: {
       name: source.name || 'Source not available',

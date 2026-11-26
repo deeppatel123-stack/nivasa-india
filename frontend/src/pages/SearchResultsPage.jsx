@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutGrid, List, Map as MapIcon, MapPin, RefreshCw, Search, SlidersHorizontal } from 'lucide-react';
+import { AlertCircle, Building2, FlaskConical, Home, LayoutGrid, List, Map as MapIcon, MapPin, RefreshCw, Search, SlidersHorizontal } from 'lucide-react';
 import { ActiveFilterChips } from '@/components/discovery/ActiveFilterChips';
 import { useListingResults } from '@/components/discovery/useListingResults';
 import { useSearchUrlSync } from '@/components/discovery/useSearchUrlSync';
@@ -8,6 +8,8 @@ import { PageShell } from '@/components/layout/PageShell';
 import { PropertyCard } from '@/components/property/PropertyCard';
 import { LocationSearchBar } from '@/components/search/LocationSearchBar';
 import { SearchFiltersPanel } from '@/components/search/SearchFiltersPanel';
+import { Badge } from '@/components/ui/Badge';
+import { Badge } from '@/components/ui/Badge';
 import { Button, LinkButton, buttonClasses } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Modal } from '@/components/ui/Modal';
@@ -19,6 +21,66 @@ import { cn } from '@/lib/utils';
 import { useSearchStore } from '@/store/useSearchStore';
 
 const SORT_OPTIONS = Object.entries(SORT_LABELS).map(([value, label]) => ({ value, label }));
+
+function ResultSection({ title, description, icon: Icon, items, view, tone = 'default', badge }) {
+  if (!items.length) return null;
+  return (
+    <section className="space-y-3">
+      <div className="flex flex-wrap items-start justify-between gap-3 rounded-2xl border border-ink-100 bg-white px-4 py-3">
+        <div className="flex items-start gap-3">
+          <span className={cn('mt-0.5 grid h-9 w-9 place-items-center rounded-xl', tone === 'demo' ? 'bg-amber-100 text-amber-700' : tone === 'business' ? 'bg-sky-100 text-sky-700' : 'bg-teal-100 text-teal-700')}>
+            <Icon className="h-4 w-4" aria-hidden />
+          </span>
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-sm font-semibold text-ink-900">{title}</h2>
+              <Badge tone={tone === 'demo' ? 'warning' : tone === 'business' ? 'info' : 'success'}>{items.length}</Badge>
+              {badge}
+            </div>
+            <p className="mt-0.5 text-xs text-ink-500">{description}</p>
+          </div>
+        </div>
+      </div>
+      <div className={cn(view === 'grid' ? 'grid gap-4 sm:grid-cols-2 xl:grid-cols-3' : 'space-y-4')}>
+        {items.map((result) => <PropertyCard key={result.property.id} property={result.property} layout={view === 'list' ? 'list' : 'grid'} />)}
+      </div>
+    </section>
+  );
+}
+
+function DiagnosticsPanel({ meta }) {
+  const diagnostics = meta?.diagnostics;
+  if (!diagnostics) return null;
+  const providers = diagnostics.providers || [];
+  return (
+    <details className="card p-4 text-xs text-ink-600">
+      <summary className="cursor-pointer font-semibold text-ink-800">Search diagnostics</summary>
+      <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        <div><span className="font-medium text-ink-700">Location:</span> {diagnostics.selectedLocation || '—'}</div>
+        <div><span className="font-medium text-ink-700">Coordinates:</span> {diagnostics.coordinates ? `${diagnostics.coordinates.lat.toFixed(5)}, ${diagnostics.coordinates.lng.toFixed(5)}` : '—'}</div>
+        <div><span className="font-medium text-ink-700">Country validation:</span> {diagnostics.countryValidation || '—'}</div>
+        <div><span className="font-medium text-ink-700">Radius:</span> {diagnostics.radiusKm ?? '—'} km</div>
+        <div><span className="font-medium text-ink-700">Raw/valid/filtered:</span> {diagnostics.rawResultCount ?? 0}/{diagnostics.validResultCount ?? 0}/{diagnostics.filteredResultCount ?? 0}</div>
+        <div><span className="font-medium text-ink-700">Counts:</span> rental {diagnostics.counts?.rentalListings ?? 0}, business {diagnostics.counts?.accommodationBusinesses ?? 0}, demo {diagnostics.counts?.demoListings ?? 0}</div>
+      </div>
+      {providers.length > 0 && (
+        <div className="mt-3 space-y-1">
+          <p className="font-medium text-ink-700">Providers</p>
+          {providers.map((p, i) => (
+            <div key={`${p.provider}-${i}`} className="flex flex-wrap gap-x-3 gap-y-1 rounded-lg bg-ink-50 px-2 py-1">
+              <span className="font-medium">{p.provider}</span>
+              <span>status: {p.status}</span>
+              {p.rawCount != null && <span>raw: {p.rawCount}</span>}
+              {p.validCount != null && <span>valid: {p.validCount}</span>}
+              {p.error && <span className="text-red-600">error: {p.error}</span>}
+              {p.note && <span className="text-ink-500">{p.note}</span>}
+            </div>
+          ))}
+        </div>
+      )}
+    </details>
+  );
+}
 
 export function SearchResultsPage() {
   useSearchUrlSync();
@@ -36,44 +98,32 @@ export function SearchResultsPage() {
     ? `/map?q=${encodeURIComponent(query)}&radius=${radiusKm}`
     : `/map?radius=${radiusKm}`;
 
+  const grouped = useMemo(() => ({
+    rentals: results.filter((r) => r.property.recordType === 'rental_listing' && !r.property.isDemo),
+    businesses: results.filter((r) => r.property.recordType === 'accommodation_business' && !r.property.isDemo),
+    demos: results.filter((r) => r.property.isDemo),
+  }), [results]);
+
+  const reason = meta?.reason;
   let content;
   if (isLoading) {
-    content = (
-      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-        {Array.from({ length: 6 }, (_, index) => <PropertyCardSkeleton key={index} />)}
-      </div>
-    );
+    content = <div className={cn(view === 'grid' ? 'grid gap-4 sm:grid-cols-2 xl:grid-cols-3' : 'space-y-4')}>{Array.from({ length: 6 }).map((_, i) => <PropertyCardSkeleton key={i} layout={view === 'list' ? 'list' : 'grid'} />)}</div>;
   } else if (!hasCoordinates) {
-    content = (
-      <EmptyState
-        icon={MapPin}
-        title="Choose a location to begin"
-        description="Enter a city, locality, landmark, or address to find places nearby."
-      />
-    );
+    content = <div className="card p-5"><EmptyState icon={MapPin} title="Search by location" description="Enter a city, area, landmark, college, company, or address in India to find nearby accommodation. Select a suggestion to start your search." /></div>;
   } else if (isError) {
-    content = (
-      <EmptyState
-        icon={RefreshCw}
-        title="Could not load results"
-        description={error?.message || 'Something went wrong while loading results. Please try again.'}
-        action={<Button onClick={() => void refetch()}>Try again</Button>}
-      />
-    );
+    content = <div className="card p-5"><EmptyState icon={RefreshCw} title="Couldn't load places" description={error?.message || 'There was a problem loading results. Please check your connection and try again.'} actions={<Button onClick={() => refetch()} leftIcon={<RefreshCw className="h-4 w-4" aria-hidden />}>Try again</Button>} /></div>;
   } else if (!results.length) {
-    content = (
-      <EmptyState
-        icon={Search}
-        title="No places found in this area"
-        description={`We couldn't find matching places within ${radiusKm} km${hasQuery ? ` of ${query}` : ''}. Try increasing the radius, clearing filters, or searching a nearby locality or landmark. If listings are limited in this area, you may still see demo or incomplete records where clearly labeled.`}
-        action={<Button onClick={() => useSearchStore.getState().setRadius(Math.min(20, Math.max(radiusKm, 10)))}>Try wider radius</Button>}
-        secondary={<Button variant="outline" onClick={resetFilters}>Clear filters</Button>}
-      />
-    );
+    const title = reason === 'providers_unavailable' ? 'Accommodation providers unavailable' : reason === 'outside_india' ? 'Location outside supported area' : hasQuery ? `No accommodation found near ${query}` : 'No accommodation found nearby';
+    const description = meta?.message || `We couldn't find matching places within ${radiusKm} km${hasQuery ? ` of ${query}` : ''}. Try increasing the radius, clearing filters, or searching a nearby locality or landmark.`;
+    content = <div className="space-y-4"><div className="card p-5"><EmptyState icon={reason === 'providers_unavailable' ? AlertCircle : Search} title={title} description={description} actions={<div className="flex flex-wrap gap-2"><Button variant="outline" size="sm" onClick={() => refetch()} leftIcon={<RefreshCw className="h-4 w-4" aria-hidden />}>Retry</Button><Button variant="outline" size="sm" onClick={resetFilters}>Clear filters</Button></div>} /></div><DiagnosticsPanel meta={meta} /></div>;
   } else {
     content = (
-      <div className={view === 'grid' ? 'grid gap-5 md:grid-cols-2 xl:grid-cols-3' : 'space-y-4'}>
-        {results.map((result) => <PropertyCard key={result.property.id} property={result.property} result={result} layout={view} />)}
+      <div className="space-y-8">
+        {reason === 'no_rental_listings' && <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"><p className="font-semibold">No rental listings with pricing evidence found nearby.</p><p className="mt-1 text-amber-800">Nearby accommodation businesses are shown below. These are place/business records and may not have rent, availability, or direct rental contact information.</p></div>}
+        <ResultSection title="Rental Properties" description="Listings with rental evidence or owner/submission data. Missing fields are shown as Not available." icon={Home} items={grouped.rentals} view={view} tone="rental" />
+        <ResultSection title="Nearby PGs & Hostels" description="Accommodation businesses found from authorized map/place sources. These are not verified rental listings unless rental evidence exists." icon={Building2} items={grouped.businesses} view={view} tone="business" badge={<Badge tone="neutral">Price may be unavailable</Badge>} />
+        <ResultSection title="Demo Listings" description="Development/testing-only records. Clearly labeled DEMO DATA and never represented as verified real rentals." icon={FlaskConical} items={grouped.demos} view={view} tone="demo" badge={<Badge tone="warning">DEMO DATA</Badge>} />
+        <DiagnosticsPanel meta={meta} />
       </div>
     );
   }

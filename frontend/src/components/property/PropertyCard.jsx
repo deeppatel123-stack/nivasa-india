@@ -74,6 +74,8 @@ export function PropertyCard({ property, result, layout = 'grid', }) {
             <div className="flex flex-wrap items-center gap-2">
               <Badge tone="blue">{CATEGORY_LABELS[property.category]}</Badge>
               {property.isDemo && <Badge tone="warning">DEMO DATA</Badge>}
+              {!property.isDemo && property.recordType === 'accommodation_business' && <Badge tone="info">Business record</Badge>}
+              {!property.isDemo && property.recordType === 'rental_listing' && <Badge tone="success">Rental listing</Badge>}
               {result?.distanceKm !== null && result?.distanceKm !== undefined && (<Badge tone="neutral">{formatDistance(result.distanceKm)} away</Badge>)}
             </div>
             <Link to={`/property/${property.id}`} className="mt-2 block font-display text-[17px] font-bold leading-snug text-ink-950 transition hover:text-teal-700">
