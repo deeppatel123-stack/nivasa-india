@@ -91,7 +91,7 @@ export function SearchResultsPage() {
   const resetFilters = useSearchStore((state) => state.resetFilters);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [view, setView] = useState('grid');
-  const hasQuery = query.trim().length > 0;
+  const hasQuery = String(query || '').trim().length > 0;
   const activeCount = countActiveFilters({ query, radiusKm, filters, sort });
   const mapHref = hasQuery
     ? `/map?q=${encodeURIComponent(query)}&radius=${radiusKm}`
