@@ -53,7 +53,7 @@ function DiagnosticsPanel({ meta }) {
   const providers = diagnostics.providers || [];
   return (
     <details className="card p-4 text-xs text-ink-600">
-      <summary className="cursor-pointer font-semibold text-ink-800">Search diagnostics</summary>
+      <summary className="cursor-pointer font-semibold text-ink-800">Technical diagnostics (admin)</summary>
       <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
         <div><span className="font-medium text-ink-700">Location:</span> {diagnostics.selectedLocation || '—'}</div>
         <div><span className="font-medium text-ink-700">Coordinates:</span> {diagnostics.coordinates ? `${diagnostics.coordinates.lat.toFixed(5)}, ${diagnostics.coordinates.lng.toFixed(5)}` : '—'}</div>
@@ -110,11 +110,24 @@ export function SearchResultsPage() {
   } else if (!hasCoordinates) {
     content = <div className="card p-5"><EmptyState icon={MapPin} title="Search by location" description="Enter a city, area, landmark, college, company, or address in India to find nearby accommodation. Select a suggestion to start your search." /></div>;
   } else if (isError) {
-    content = <div className="card p-5"><EmptyState icon={RefreshCw} title="Couldn't load places" description={error?.message || 'There was a problem loading results. Please check your connection and try again.'} actions={<Button onClick={() => refetch()} leftIcon={<RefreshCw className="h-4 w-4" aria-hidden />}>Try again</Button>} /></div>;
+    const unavailable = /unavailable|temporarily/i.test(error?.message || '');
+    content = <div className="card p-5"><EmptyState icon={unavailable ? AlertCircle : RefreshCw} title={unavailable ? 'Accommodation search is temporarily unavailable' : "Couldn't load places"} description={unavailable ? 'Please try again in a moment. If the problem continues, try a different location or expand your search radius.' : 'There was a problem loading results. Please check your connection and try again.'} actions={<Button onClick={() => refetch()} leftIcon={<RefreshCw className="h-4 w-4" aria-hidden />}>Try again</Button>} /></div>;
   } else if (!results.length) {
-    const title = reason === 'providers_unavailable' ? 'Accommodation providers unavailable' : reason === 'outside_india' ? 'Location outside supported area' : hasQuery ? `No accommodation found near ${query}` : 'No accommodation found nearby';
-    const description = meta?.message || `We couldn't find matching places within ${radiusKm} km${hasQuery ? ` of ${query}` : ''}. Try increasing the radius, clearing filters, or searching a nearby locality or landmark.`;
-    content = <div className="space-y-4"><div className="card p-5"><EmptyState icon={reason === 'providers_unavailable' ? AlertCircle : Search} title={title} description={description} actions={<div className="flex flex-wrap gap-2"><Button variant="outline" size="sm" onClick={() => refetch()} leftIcon={<RefreshCw className="h-4 w-4" aria-hidden />}>Retry</Button><Button variant="outline" size="sm" onClick={resetFilters}>Clear filters</Button></div>} /></div><DiagnosticsPanel meta={meta} /></div>;
+    const title = reason === 'providers_unavailable' || reason === 'quota_exceeded' || reason === 'invalid_response'
+      ? 'Accommodation search is temporarily unavailable'
+      : reason === 'missing_credentials'
+        ? 'Accommodation search is partially unavailable'
+        : reason === 'outside_india'
+          ? 'Location outside supported area'
+          : hasQuery ? `No accommodation found near ${query}` : 'No accommodation found nearby';
+    const description = reason === 'outside_india'
+      ? 'Nivasa currently supports locations within India only. Please search for an Indian city, locality, landmark, college, or address.'
+      : reason === 'providers_unavailable' || reason === 'quota_exceeded' || reason === 'invalid_response'
+        ? 'We could not complete the accommodation search right now. Please try again, or expand your search radius later.'
+        : reason === 'missing_credentials'
+          ? 'Some accommodation sources are not configured. You can try again later or search a different location.'
+          : `No rental properties or nearby accommodation businesses were found within ${radiusKm} km${hasQuery ? ` of ${query}` : ''}. Try expanding your search radius, clearing filters, or searching a nearby locality or landmark.`;
+    content = <div className="space-y-4"><div className="card p-5"><EmptyState icon={reason === 'no_accommodation_found' ? Search : AlertCircle} title={title} description={description} actions={<div className="flex flex-wrap gap-2"><Button variant="outline" size="sm" onClick={() => refetch()} leftIcon={<RefreshCw className="h-4 w-4" aria-hidden />}>Retry</Button><Button variant="outline" size="sm" onClick={resetFilters}>Clear filters</Button></div>} /></div><DiagnosticsPanel meta={meta} /></div>;
   } else {
     content = (
       <div className="space-y-8">

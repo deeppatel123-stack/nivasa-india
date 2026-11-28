@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { geocoderStatusController, resolvePlaceController, reverseGeocodeController, suggestPlacesController } from '../controllers/geocodeController.js';
 import { getListingController, searchListingsController } from '../controllers/listingsController.js';
+import { optionalAuth } from '../middleware/auth.js';
 import { authRouter } from './auth.js';
 import { messagesRouter } from './messages.js';
 import { submissionsRouter } from './submissions.js';
@@ -21,7 +22,7 @@ apiRouter.get('/geocode/resolve', resolvePlaceController);
 apiRouter.get('/geocode/reverse', reverseGeocodeController);
 apiRouter.get('/geocode/status', geocoderStatusController);
 
-apiRouter.get('/listings', searchListingsController);
+apiRouter.get('/listings', optionalAuth, searchListingsController);
 apiRouter.get('/listings/:id', getListingController);
 
 apiRouter.use('/auth', authRouter);

@@ -5,32 +5,64 @@ import { isWithinIndiaBounds, normaliseText, validateIndiaLocation } from '../..
 import { nominatimReverse, nominatimSearch, photonSuggest } from './providers.js';
 import { googleGeocode, googleStatus, googleTextSearch } from './googlePlaces.js';
 
+// Extensible alias rules. Add city/context-aware expansions; avoid resolving ambiguous short queries without context.
 const ALIASES = [
-  { pattern: /\blj\b/i, expansions: ['LJ University Ahmedabad', 'LJ Institute Ahmedabad'] },
-  { pattern: /\bnirma\b/i, expansions: ['Nirma University Ahmedabad'] },
-  { pattern: /\bsg highway\b/i, expansions: ['SG Highway Ahmedabad'] },
-  { pattern: /\bhinjewadi\b/i, expansions: ['Hinjewadi Pune'] },
-  { pattern: /\bmakarba\b/i, expansions: ['Makarba Ahmedabad'] },
-  { pattern: /\bkoramangala\b/i, expansions: ['Koramangala Bengaluru'] },
-  { pattern: /\bpowai\b/i, expansions: ['Powai Mumbai'] },
-  { pattern: /\bvastrapur\b/i, expansions: ['Vastrapur Ahmedabad'] },
+  { pattern: /\blj\s*(university|uni|inst|institute)?\b/i, expansions: ['LJ University Ahmedabad', 'LJ Institute Ahmedabad', 'LJ Campus Ahmedabad'] },
+  { pattern: /\bnirma\s*(university|uni|inst|institute)?\b/i, expansions: ['Nirma University Ahmedabad'] },
+  { pattern: /\bs\.?\s*g\.?\s*highway\b/i, expansions: ['SG Highway Ahmedabad', 'Sarkhej Gandhinagar Highway Ahmedabad'] },
+  { pattern: /\bmakarba\b/i, expansions: ['Makarba Ahmedabad', 'Makarba, Ahmedabad, Gujarat'] },
+  { pattern: /\bvastrapur\b/i, expansions: ['Vastrapur Ahmedabad', 'Vastrapur Lake Ahmedabad'] },
+  { pattern: /\bhinjewadi\b/i, expansions: ['Hinjewadi Pune', 'Hinjewadi Phase 1 Pune', 'Rajiv Gandhi Infotech Park Hinjewadi'] },
+  { pattern: /\bpowai\b/i, expansions: ['Powai Mumbai', 'Powai, Mumbai, Maharashtra'] },
+  { pattern: /\bkoramangala\b/i, expansions: ['Koramangala Bengaluru', 'Koramangala Bangalore Karnataka'] },
+  { pattern: /\bhsr\b/i, expansions: ['HSR Layout Bengaluru', 'HSR Layout Bangalore'] },
+  { pattern: /\bbtm\b/i, expansions: ['BTM Layout Bengaluru', 'BTM Layout Bangalore'] },
+  { pattern: /\belectronic city\b|\becity\b/i, expansions: ['Electronic City Bengaluru', 'Electronic City Bangalore'] },
+  { pattern: /\bwhitefield\b/i, expansions: ['Whitefield Bengaluru', 'Whitefield Bangalore'] },
+  { pattern: /\bmarathahalli\b/i, expansions: ['Marathahalli Bengaluru'] },
+  { pattern: /\bandheri\b/i, expansions: ['Andheri Mumbai'] },
+  { pattern: /\bbandra\b/i, expansions: ['Bandra Mumbai'] },
+  { pattern: /\bgachibowli\b/i, expansions: ['Gachibowli Hyderabad'] },
+  { pattern: /\bnoida\b/i, expansions: ['Noida Uttar Pradesh'] },
+  { pattern: /\bgurgaon\b|\bgurugram\b/i, expansions: ['Gurugram Haryana', 'Gurgaon Haryana'] },
+  { pattern: /\bsurat\b/i, expansions: ['Surat Gujarat'] },
+  { pattern: /\bjamnagar\b/i, expansions: ['Jamnagar Gujarat'] },
+  { pattern: /\bahmedabad\b|\bamdavad\b/i, expansions: ['Ahmedabad Gujarat'] },
+  { pattern: /\bbengaluru\b|\bbangalore\b|\bblr\b/i, expansions: ['Bengaluru Karnataka', 'Bangalore Karnataka'] },
+  { pattern: /\bmumbai\b|\bbombay\b/i, expansions: ['Mumbai Maharashtra'] },
+  { pattern: /\bpune\b/i, expansions: ['Pune Maharashtra'] },
 ];
 
 function indiaOnlyMessage(query) {
   return `No India location found for "${query}". Nivasa supports locations within India only. Try a city, locality, landmark, college, company, PIN code or full Indian address.`;
 }
 
+function normalizeAliasText(value) {
+  return normaliseText(String(value || '').replace(/[.]/g, ' ').replace(/\s+/g, ' '));
+}
+
+function hasCityContext(value) {
+  return /\b(ahmedabad|amdavad|gujarat|pune|maharashtra|mumbai|bombay|bengaluru|bangalore|karnataka|surat|jamnagar|delhi|noida|gurugram|gurgaon|hyderabad|chennai|kolkata|jaipur|indore|bhopal)\b/i.test(value);
+}
+
 function expandQuery(query) {
   const trimmed = String(query || '').trim();
-  const normalized = normaliseText(trimmed);
+  const normalized = normalizeAliasText(trimmed);
   const expansions = new Set([trimmed]);
   for (const alias of ALIASES) {
     if (alias.pattern.test(trimmed) || alias.pattern.test(normalized)) {
-      alias.expansions.forEach((value) => expansions.add(value));
+      alias.expansions.forEach((value) => {
+        // Avoid expanding very short ambiguous tokens unless query already has context.
+        const shortToken = normalized.length <= 3 && !hasCityContext(normalized);
+        if (shortToken && !hasCityContext(value)) return;
+        expansions.add(value);
+      });
     }
   }
-  // Simple abbreviation/partial handling: if short token and no city context, keep original first.
-  return Array.from(expansions).filter(Boolean).slice(0, 4);
+  // Common punctuation/spacing variants
+  if (/\bs\s*\.?\s*g\s*\.?\s*highway\b/i.test(trimmed)) expansions.add('SG Highway Ahmedabad');
+  if (/\bl\s*\.?\s*j\s*\.?\s*(university|institute)?\b/i.test(trimmed)) expansions.add('LJ University Ahmedabad');
+  return Array.from(expansions).filter(Boolean).slice(0, 6);
 }
 
 function normalisePlace(place) {
@@ -122,19 +154,38 @@ export async function suggestPlaces(query, limit = 6) {
   };
 }
 
+function locationKey(item) {
+  return [normaliseText(item.city), normaliseText(item.state), normaliseText(item.postcode), normaliseText(item.name || item.label)].join('|');
+}
+
 function isAmbiguous(query, items) {
   if (items.length < 2) return false;
-  const q = normaliseText(query);
-  const first = normaliseText(items[0].name || items[0].label);
-  const topMatches = items.filter((item) => {
-    const name = normaliseText(item.name || item.label);
-    return name === q || name.startsWith(q) || q.startsWith(name);
-  });
-  // If multiple distinct states/cities match equally well, require user selection.
-  const distinct = new Set(topMatches.map((i) => `${normaliseText(i.city)}|${normaliseText(i.state)}|${normaliseText(i.postcode)}`));
-  if (distinct.size > 1) return true;
-  // If top result does not clearly match a short/ambiguous query, require selection.
-  if (q.length <= 4 && !first.startsWith(q)) return true;
+  const q = normalizeAliasText(query);
+  const normalizedItems = items.map((item) => ({
+    item,
+    name: normalizeAliasText(item.name || item.label),
+    city: normalizeAliasText(item.city),
+    state: normalizeAliasText(item.state),
+  }));
+
+  const strongMatches = normalizedItems.filter(({ name, city, state }) =>
+    name === q || name.startsWith(q) || q.startsWith(name) || city === q || `${name} ${city}`.includes(q)
+  );
+  const candidates = strongMatches.length > 1 ? strongMatches : normalizedItems.slice(0, 3);
+  const distinct = new Set(candidates.map(({ item }) => `${normaliseText(item.city)}|${normaliseText(item.state)}|${normaliseText(item.postcode)}`));
+
+  // Same name in different cities/states: ambiguous.
+  if (distinct.size > 1) {
+    // If query already includes a disambiguating context that matches only one candidate, allow it.
+    const contextual = candidates.filter(({ name, city, state }) => q.includes(city) || q.includes(state) || q.includes(name));
+    const contextualDistinct = new Set(contextual.map(({ item }) => `${normaliseText(item.city)}|${normaliseText(item.state)}`));
+    if (contextualDistinct.size === 1) return false;
+    return true;
+  }
+
+  // Very short query without context can be ambiguous.
+  if (q.length <= 3 && !hasCityContext(q)) return true;
+
   return false;
 }
 
@@ -218,7 +269,7 @@ export async function resolvePlace(query) {
   if (diagnostics.providers.length && diagnostics.providers.every((p) => p.status !== 'ok')) {
     throw unavailable('Location service is currently unavailable. Please try again.', { upstream: upstreamError?.message, diagnostics });
   }
-  throw badRequest(indiaOnlyMessage(trimmed), { indiaOnly: true, query: trimmed, diagnostics });
+  throw badRequest(indiaOnlyMessage(trimmed), { indiaOnly: true, query: trimmed, diagnostics, reason: 'location_not_found' });
 }
 
 export async function reverseGeocode(lat, lng) {
@@ -285,3 +336,5 @@ export const geocoderStatus = () => ({
   attribution: '© OpenStreetMap contributors, ODbL 1.0; Google data shown only when Google APIs are configured and used.',
   note: 'Requests are proxied, cached, rate-limited and validated to Indian locations by this server. Set GOOGLE_MAPS_API_KEY to enable Google Places/Geocoding.',
 });
+
+export const __test__ = { expandQuery, normalizeAliasText, isAmbiguous };

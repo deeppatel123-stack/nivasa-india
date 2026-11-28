@@ -159,6 +159,9 @@ function reasonMessage({ reason }) {
     outside_india: 'Nivasa currently supports locations within India only.',
     no_accommodation_found: 'No accommodation businesses or rental listings were found near this location.',
     providers_unavailable: 'Accommodation providers are currently unavailable. Please try again.',
+    quota_exceeded: 'Accommodation search is temporarily unavailable because a provider quota was exceeded. Please try again later.',
+    missing_credentials: 'Some accommodation providers are not configured. Results may be incomplete until credentials are added.',
+    invalid_response: 'A provider returned an invalid response. Please try again.',
     no_rental_listings: 'No rental listings with pricing evidence were found near this location. Nearby accommodation businesses may still be available.',
   };
   return messages[reason] || 'No results available.';
@@ -256,7 +259,16 @@ export async function searchListings(params = {}) {
 
   let reason = null;
   if (!filtered.length) {
-    reason = diagnostics.providers.some((p) => p.status === 'ok' || p.status === 'empty') ? 'no_accommodation_found' : 'providers_unavailable';
+    const providerStates = diagnostics.providers.filter((p) => p.provider !== 'database').map((p) => p.status);
+    const hasQuota = providerStates.some((s) => s === 'quota_exceeded');
+    const hasMissingCreds = providerStates.some((s) => s === 'missing_credentials');
+    const hasInvalid = providerStates.some((s) => s === 'invalid_response');
+    const hasOk = diagnostics.providers.some((p) => p.status === 'ok' || p.status === 'empty');
+    if (hasOk) reason = 'no_accommodation_found';
+    else if (hasQuota) reason = 'quota_exceeded';
+    else if (hasMissingCreds) reason = 'missing_credentials';
+    else if (hasInvalid) reason = 'invalid_response';
+    else reason = 'providers_unavailable';
   } else if (counts.rentalListings === 0 && counts.accommodationBusinesses > 0) {
     reason = 'no_rental_listings';
   }

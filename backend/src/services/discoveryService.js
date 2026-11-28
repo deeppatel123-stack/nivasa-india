@@ -65,7 +65,8 @@ export function toBusinessCandidate(item, center, fetchedAt, provider = item.pro
 function dedupe(items) {
   const seen = new Set();
   return items.filter((item) => {
-    const key = item.externalId || `${normaliseText(item.title)}:${item.coordinates?.lat?.toFixed?.(5)}:${item.coordinates?.lng?.toFixed?.(5)}`;
+    const key = item.externalId
+      || `${normaliseText(item.title)}|${normaliseText(item.address?.label || item.address?.city)}|${Number(item.coordinates?.lat).toFixed(4)}|${Number(item.coordinates?.lng).toFixed(4)}`;
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
@@ -78,9 +79,17 @@ async function runProvider(name, fn) {
     const items = await fn();
     return { name, status: 'ok', items, rawCount: items.length, durationMs: Date.now() - started };
   } catch (error) {
+    const msg = String(error.message || '');
+    const status = error.code === 'missing_google_api_key'
+      ? 'missing_credentials'
+      : error.status === 429 || /quota|rate limit|RESOURCE_EXHAUSTED/i.test(msg) || error.code === 'RESOURCE_EXHAUSTED'
+        ? 'quota_exceeded'
+        : /invalid response|unexpected/i.test(msg)
+          ? 'invalid_response'
+          : 'error';
     return {
       name,
-      status: error.code === 'missing_google_api_key' ? 'missing_credentials' : 'error',
+      status,
       items: [],
       rawCount: 0,
       error: error.message,
